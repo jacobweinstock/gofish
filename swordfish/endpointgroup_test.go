@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -82,7 +83,7 @@ func TestEndpointGroupUpdate(t *testing.T) {
 	result.GroupType = ClientGroupType
 	result.Preferred = true
 	result.TargetEndpointGroupIdentifier = 9
-	err = result.Update()
+	err = result.Update(context.Background())
 
 	if err != nil {
 		t.Errorf("Error making Update call: %s", err)

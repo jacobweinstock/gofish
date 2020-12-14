@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -73,7 +74,7 @@ func TestManagerAccountUpdate(t *testing.T) {
 	result.Enabled = false
 	result.Locked = false
 	result.Password = "Test"
-	err = result.Update()
+	err = result.Update(context.Background())
 
 	if err != nil {
 		t.Errorf("Error making Update call: %s", err)

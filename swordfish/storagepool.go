@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -143,7 +144,7 @@ func (storagepool *StoragePool) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (storagepool *StoragePool) Update() error {
+func (storagepool *StoragePool) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -165,12 +166,12 @@ func (storagepool *StoragePool) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(storagepool).Elem()
 
-	return storagepool.Entity.Update(originalElement, currentElement, readWriteFields)
+	return storagepool.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetStoragePool will get a StoragePool instance from the service.
-func GetStoragePool(c common.Client, uri string) (*StoragePool, error) {
-	resp, err := c.Get(uri)
+func GetStoragePool(ctx context.Context, c common.Client, uri string) (*StoragePool, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -188,19 +189,19 @@ func GetStoragePool(c common.Client, uri string) (*StoragePool, error) {
 
 // ListReferencedStoragePools gets the collection of StoragePool from
 // a provided reference.
-func ListReferencedStoragePools(c common.Client, link string) ([]*StoragePool, error) {
+func ListReferencedStoragePools(ctx context.Context, c common.Client, link string) ([]*StoragePool, error) {
 	var result []*StoragePool
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, storagepoolLink := range links.ItemLinks {
-		storagepool, err := GetStoragePool(c, storagepoolLink)
+		storagepool, err := GetStoragePool(ctx, c, storagepoolLink)
 		if err != nil {
 			return result, err
 		}
@@ -212,10 +213,10 @@ func ListReferencedStoragePools(c common.Client, link string) ([]*StoragePool, e
 
 // DedicatedSpareDrives gets the Drive entities which are currently assigned as
 // a dedicated spare and are able to support this StoragePool.
-func (storagepool *StoragePool) DedicatedSpareDrives() ([]*redfish.Drive, error) {
+func (storagepool *StoragePool) DedicatedSpareDrives(ctx context.Context) ([]*redfish.Drive, error) {
 	var result []*redfish.Drive
 	for _, driveLink := range storagepool.dedicatedSpareDrives {
-		drive, err := redfish.GetDrive(storagepool.Client, driveLink)
+		drive, err := redfish.GetDrive(ctx, storagepool.Client, driveLink)
 		if err != nil {
 			return result, nil
 		}
@@ -226,10 +227,10 @@ func (storagepool *StoragePool) DedicatedSpareDrives() ([]*redfish.Drive, error)
 
 // SpareResourceSets gets resources that may be utilized to replace the capacity
 // provided by a failed resource having a compatible type.
-func (storagepool *StoragePool) SpareResourceSets() ([]*SpareResourceSet, error) {
+func (storagepool *StoragePool) SpareResourceSets(ctx context.Context) ([]*SpareResourceSet, error) {
 	var result []*SpareResourceSet
 	for _, srsLink := range storagepool.spareResourceSets {
-		srs, err := GetSpareResourceSet(storagepool.Client, srsLink)
+		srs, err := GetSpareResourceSet(ctx, storagepool.Client, srsLink)
 		if err != nil {
 			return result, nil
 		}
@@ -239,20 +240,20 @@ func (storagepool *StoragePool) SpareResourceSets() ([]*SpareResourceSet, error)
 }
 
 // AllocatedPools gets the storage pools allocated from this storage pool.
-func (storagepool *StoragePool) AllocatedPools() ([]*StoragePool, error) {
-	return ListReferencedStoragePools(storagepool.Client, storagepool.allocatedPools)
+func (storagepool *StoragePool) AllocatedPools(ctx context.Context) ([]*StoragePool, error) {
+	return ListReferencedStoragePools(ctx, storagepool.Client, storagepool.allocatedPools)
 }
 
 // AllocatedVolumes gets the volumes allocated from this storage pool.
-func (storagepool *StoragePool) AllocatedVolumes() ([]*Volume, error) {
-	return ListReferencedVolumes(storagepool.Client, storagepool.allocatedVolumes)
+func (storagepool *StoragePool) AllocatedVolumes(ctx context.Context) ([]*Volume, error) {
+	return ListReferencedVolumes(ctx, storagepool.Client, storagepool.allocatedVolumes)
 }
 
 // CapacitySources gets space allocations to this pool.
-func (storagepool *StoragePool) CapacitySources() ([]*CapacitySource, error) {
+func (storagepool *StoragePool) CapacitySources(ctx context.Context) ([]*CapacitySource, error) {
 	var result []*CapacitySource
 	for _, capLink := range storagepool.capacitySources {
-		capacity, err := GetCapacitySource(storagepool.Client, capLink)
+		capacity, err := GetCapacitySource(ctx, storagepool.Client, capLink)
 		if err != nil {
 			return result, nil
 		}
@@ -264,14 +265,14 @@ func (storagepool *StoragePool) CapacitySources() ([]*CapacitySource, error) {
 // ClassesOfService gets references to all classes of service supported by this
 // storage pool. Capacity allocated from this storage pool shall conform to one
 // of the referenced classes of service.
-func (storagepool *StoragePool) ClassesOfService() ([]*ClassOfService, error) {
-	return ListReferencedClassOfServices(storagepool.Client, storagepool.classesOfService)
+func (storagepool *StoragePool) ClassesOfService(ctx context.Context) ([]*ClassOfService, error) {
+	return ListReferencedClassOfServices(ctx, storagepool.Client, storagepool.classesOfService)
 }
 
 // DefaultClassOfService gets the default ClassOfService for this pool.
-func (storagepool *StoragePool) DefaultClassOfService() (*ClassOfService, error) {
+func (storagepool *StoragePool) DefaultClassOfService(ctx context.Context) (*ClassOfService, error) {
 	if storagepool.defaultClassOfService == "" {
 		return nil, nil
 	}
-	return GetClassOfService(storagepool.Client, storagepool.defaultClassOfService)
+	return GetClassOfService(ctx, storagepool.Client, storagepool.defaultClassOfService)
 }

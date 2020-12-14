@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -60,7 +61,7 @@ func (vlannetworkinterface *VLanNetworkInterface) UnmarshalJSON(b []byte) error 
 }
 
 // Update commits updates to this object's properties to the running system.
-func (vlannetworkinterface *VLanNetworkInterface) Update() error {
+func (vlannetworkinterface *VLanNetworkInterface) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -75,12 +76,12 @@ func (vlannetworkinterface *VLanNetworkInterface) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(vlannetworkinterface).Elem()
 
-	return vlannetworkinterface.Entity.Update(originalElement, currentElement, readWriteFields)
+	return vlannetworkinterface.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetVLanNetworkInterface will get a VLanNetworkInterface instance from the service.
-func GetVLanNetworkInterface(c common.Client, uri string) (*VLanNetworkInterface, error) {
-	resp, err := c.Get(uri)
+func GetVLanNetworkInterface(ctx context.Context, c common.Client, uri string) (*VLanNetworkInterface, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -98,19 +99,19 @@ func GetVLanNetworkInterface(c common.Client, uri string) (*VLanNetworkInterface
 
 // ListReferencedVLanNetworkInterfaces gets the collection of VLanNetworkInterface from
 // a provided reference.
-func ListReferencedVLanNetworkInterfaces(c common.Client, link string) ([]*VLanNetworkInterface, error) {
+func ListReferencedVLanNetworkInterfaces(ctx context.Context, c common.Client, link string) ([]*VLanNetworkInterface, error) {
 	var result []*VLanNetworkInterface
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, vlannetworkinterfaceLink := range links.ItemLinks {
-		vlannetworkinterface, err := GetVLanNetworkInterface(c, vlannetworkinterfaceLink)
+		vlannetworkinterface, err := GetVLanNetworkInterface(ctx, c, vlannetworkinterfaceLink)
 		if err != nil {
 			return result, err
 		}

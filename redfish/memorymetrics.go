@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -101,8 +102,8 @@ type MemoryMetrics struct {
 }
 
 // GetMemoryMetrics will get a MemoryMetrics instance from the service.
-func GetMemoryMetrics(c common.Client, uri string) (*MemoryMetrics, error) {
-	resp, err := c.Get(uri)
+func GetMemoryMetrics(ctx context.Context, c common.Client, uri string) (*MemoryMetrics, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -120,19 +121,19 @@ func GetMemoryMetrics(c common.Client, uri string) (*MemoryMetrics, error) {
 
 // ListReferencedMemoryMetricss gets the collection of MemoryMetrics from
 // a provided reference.
-func ListReferencedMemoryMetricss(c common.Client, link string) ([]*MemoryMetrics, error) {
+func ListReferencedMemoryMetricss(ctx context.Context, c common.Client, link string) ([]*MemoryMetrics, error) {
 	var result []*MemoryMetrics
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, memorymetricsLink := range links.ItemLinks {
-		memorymetrics, err := GetMemoryMetrics(c, memorymetricsLink)
+		memorymetrics, err := GetMemoryMetrics(ctx, c, memorymetricsLink)
 		if err != nil {
 			return result, err
 		}

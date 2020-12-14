@@ -5,6 +5,7 @@
 package common
 
 import (
+	"context"
 	"encoding/json"
 )
 
@@ -36,8 +37,8 @@ type Message struct {
 }
 
 // GetMessage will get a Message instance from the service.
-func GetMessage(c Client, uri string) (*Message, error) {
-	resp, err := c.Get(uri)
+func GetMessage(ctx context.Context, c Client, uri string) (*Message, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -55,19 +56,19 @@ func GetMessage(c Client, uri string) (*Message, error) {
 
 // ListReferencedMessages gets the collection of Message from
 // a provided reference.
-func ListReferencedMessages(c Client, link string) ([]*Message, error) {
+func ListReferencedMessages(ctx context.Context, c Client, link string) ([]*Message, error) {
 	var result []*Message
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := GetCollection(c, link)
+	links, err := GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, messageLink := range links.ItemLinks {
-		message, err := GetMessage(c, messageLink)
+		message, err := GetMessage(ctx, c, messageLink)
 		if err != nil {
 			return result, err
 		}

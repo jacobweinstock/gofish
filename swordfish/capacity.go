@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/redfish"
@@ -118,8 +119,8 @@ func (capacitysource *CapacitySource) UnmarshalJSON(b []byte) error {
 }
 
 // GetCapacitySource will get a CapacitySource instance from the service.
-func GetCapacitySource(c common.Client, uri string) (*CapacitySource, error) {
-	resp, err := c.Get(uri)
+func GetCapacitySource(ctx context.Context, c common.Client, uri string) (*CapacitySource, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -137,19 +138,19 @@ func GetCapacitySource(c common.Client, uri string) (*CapacitySource, error) {
 
 // ListReferencedCapacitySources gets the collection of CapacitySources from
 // a provided reference.
-func ListReferencedCapacitySources(c common.Client, link string) ([]*CapacitySource, error) {
+func ListReferencedCapacitySources(ctx context.Context, c common.Client, link string) ([]*CapacitySource, error) {
 	var result []*CapacitySource
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, capSourceLink := range links.ItemLinks {
-		capSource, err := GetCapacitySource(c, capSourceLink)
+		capSource, err := GetCapacitySource(ctx, c, capSourceLink)
 		if err != nil {
 			return result, err
 		}
@@ -161,31 +162,31 @@ func ListReferencedCapacitySources(c common.Client, link string) ([]*CapacitySou
 
 // ProvidedClassOfService gets the ClassOfService from the ProvidingDrives,
 // ProvidingVolumes, ProvidingMemoryChunks, ProvidingMemory or ProvidingPools.
-func (capacitysource *CapacitySource) ProvidedClassOfService() (*ClassOfService, error) {
+func (capacitysource *CapacitySource) ProvidedClassOfService(ctx context.Context) (*ClassOfService, error) {
 	if capacitysource.providedClassOfService == "" {
 		return nil, nil
 	}
-	return GetClassOfService(capacitysource.Client, capacitysource.providedClassOfService)
+	return GetClassOfService(ctx, capacitysource.Client, capacitysource.providedClassOfService)
 }
 
 // ProvidingDrives gets contributing drives.
-func (capacitysource *CapacitySource) ProvidingDrives() ([]*redfish.Drive, error) {
-	return redfish.ListReferencedDrives(capacitysource.Client, capacitysource.providingDrives)
+func (capacitysource *CapacitySource) ProvidingDrives(ctx context.Context) ([]*redfish.Drive, error) {
+	return redfish.ListReferencedDrives(ctx, capacitysource.Client, capacitysource.providingDrives)
 }
 
 // ProvidingMemory gets contributing memory.
-func (capacitysource *CapacitySource) ProvidingMemory() ([]*redfish.Memory, error) {
-	return redfish.ListReferencedMemorys(capacitysource.Client, capacitysource.providingMemory)
+func (capacitysource *CapacitySource) ProvidingMemory(ctx context.Context) ([]*redfish.Memory, error) {
+	return redfish.ListReferencedMemorys(ctx, capacitysource.Client, capacitysource.providingMemory)
 }
 
 // TODO: Add memory chunks
 
 // ProvidingPools gets contributing pools.
-func (capacitysource *CapacitySource) ProvidingPools() ([]*StoragePool, error) {
-	return ListReferencedStoragePools(capacitysource.Client, capacitysource.providingPools)
+func (capacitysource *CapacitySource) ProvidingPools(ctx context.Context) ([]*StoragePool, error) {
+	return ListReferencedStoragePools(ctx, capacitysource.Client, capacitysource.providingPools)
 }
 
 // ProvidingVolumes gets contributing volumes.
-func (capacitysource *CapacitySource) ProvidingVolumes() ([]*Volume, error) {
-	return ListReferencedVolumes(capacitysource.Client, capacitysource.providingVolumes)
+func (capacitysource *CapacitySource) ProvidingVolumes(ctx context.Context) ([]*Volume, error) {
+	return ListReferencedVolumes(ctx, capacitysource.Client, capacitysource.providingVolumes)
 }

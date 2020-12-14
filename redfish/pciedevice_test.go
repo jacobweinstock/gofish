@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -99,7 +100,7 @@ func TestPCIeDeviceUpdate(t *testing.T) {
 	result.SetClient(testClient)
 
 	result.AssetTag = "TestAssetTag"
-	err = result.Update()
+	err = result.Update(context.Background())
 
 	if err != nil {
 		t.Errorf("Error making Update call: %s", err)

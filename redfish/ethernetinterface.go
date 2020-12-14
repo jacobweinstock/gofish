@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -250,7 +251,7 @@ func (ethernetinterface *EthernetInterface) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (ethernetinterface *EthernetInterface) Update() error {
+func (ethernetinterface *EthernetInterface) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -272,12 +273,12 @@ func (ethernetinterface *EthernetInterface) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(ethernetinterface).Elem()
 
-	return ethernetinterface.Entity.Update(originalElement, currentElement, readWriteFields)
+	return ethernetinterface.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetEthernetInterface will get a EthernetInterface instance from the service.
-func GetEthernetInterface(c common.Client, uri string) (*EthernetInterface, error) {
-	resp, err := c.Get(uri)
+func GetEthernetInterface(ctx context.Context, c common.Client, uri string) (*EthernetInterface, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -295,19 +296,19 @@ func GetEthernetInterface(c common.Client, uri string) (*EthernetInterface, erro
 
 // ListReferencedEthernetInterfaces gets the collection of EthernetInterface from
 // a provided reference.
-func ListReferencedEthernetInterfaces(c common.Client, link string) ([]*EthernetInterface, error) {
+func ListReferencedEthernetInterfaces(ctx context.Context, c common.Client, link string) ([]*EthernetInterface, error) {
 	var result []*EthernetInterface
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, ethernetinterfaceLink := range links.ItemLinks {
-		ethernetinterface, err := GetEthernetInterface(c, ethernetinterfaceLink)
+		ethernetinterface, err := GetEthernetInterface(ctx, c, ethernetinterfaceLink)
 		if err != nil {
 			return result, err
 		}

@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -143,7 +144,7 @@ func TestFileShareUpdate(t *testing.T) {
 	result.CASupported = false
 	result.FileShareQuotaType = SoftQuotaType
 	result.FileShareTotalQuotaBytes = 1024
-	err = result.Update()
+	err = result.Update(context.Background())
 
 	if err != nil {
 		t.Errorf("Error making Update call: %s", err)

@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -204,7 +205,7 @@ func (eventservice *EventService) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (eventservice *EventService) Update() error {
+func (eventservice *EventService) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -220,12 +221,12 @@ func (eventservice *EventService) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(eventservice).Elem()
 
-	return eventservice.Entity.Update(originalElement, currentElement, readWriteFields)
+	return eventservice.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetEventService will get a EventService instance from the service.
-func GetEventService(c common.Client, uri string) (*EventService, error) {
-	resp, err := c.Get(uri)
+func GetEventService(ctx context.Context, c common.Client, uri string) (*EventService, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -243,19 +244,19 @@ func GetEventService(c common.Client, uri string) (*EventService, error) {
 
 // ListReferencedEventServices gets the collection of EventService from
 // a provided reference.
-func ListReferencedEventServices(c common.Client, link string) ([]*EventService, error) {
+func ListReferencedEventServices(ctx context.Context, c common.Client, link string) ([]*EventService, error) {
 	var result []*EventService
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, eventserviceLink := range links.ItemLinks {
-		eventservice, err := GetEventService(c, eventserviceLink)
+		eventservice, err := GetEventService(ctx, c, eventserviceLink)
 		if err != nil {
 			return result, err
 		}
@@ -266,17 +267,17 @@ func ListReferencedEventServices(c common.Client, link string) ([]*EventService,
 }
 
 // GetEventSubscriptions gets all the subscriptions using the event service.
-func (eventservice *EventService) GetEventSubscriptions() ([]*EventDestination, error) {
+func (eventservice *EventService) GetEventSubscriptions(ctx context.Context) ([]*EventDestination, error) {
 	if len(strings.TrimSpace(eventservice.subscriptions)) == 0 {
 		return nil, fmt.Errorf("empty subscription link in the event service")
 	}
 
-	return ListReferencedEventDestinations(eventservice.Client, eventservice.subscriptions)
+	return ListReferencedEventDestinations(ctx, eventservice.Client, eventservice.subscriptions)
 }
 
 // GetEventSubscription gets a specific subscription using the event service.
-func (eventservice *EventService) GetEventSubscription(uri string) (*EventDestination, error) {
-	return GetEventDestination(eventservice.Client, uri)
+func (eventservice *EventService) GetEventSubscription(ctx context.Context, uri string) (*EventDestination, error) {
+	return GetEventDestination(ctx, eventservice.Client, uri)
 }
 
 // CreateEventSubscription creates the subscription using the event service.
@@ -292,6 +293,7 @@ func (eventservice *EventService) GetEventSubscription(uri string) (*EventDestin
 // It returns the new subscription URI if the event subscription is created
 // with success or any error encountered.
 func (eventservice *EventService) CreateEventSubscription(
+	ctx context.Context,
 	destination string,
 	eventTypes []EventType,
 	httpHeaders map[string]string,
@@ -304,6 +306,7 @@ func (eventservice *EventService) CreateEventSubscription(
 	}
 
 	return CreateEventDestination(
+		ctx,
 		eventservice.Client,
 		eventservice.subscriptions,
 		destination,
@@ -316,14 +319,14 @@ func (eventservice *EventService) CreateEventSubscription(
 }
 
 // DeleteEventSubscription deletes a specific subscription using the event service.
-func (eventservice *EventService) DeleteEventSubscription(uri string) error {
-	return DeleteEventDestination(eventservice.Client, uri)
+func (eventservice *EventService) DeleteEventSubscription(ctx context.Context, uri string) error {
+	return DeleteEventDestination(ctx, eventservice.Client, uri)
 }
 
 // SubmitTestEvent shall add a test event to the event service with the event
 // data specified in the action parameters. This message should then be sent to
 // any appropriate ListenerDestination targets.
-func (eventservice *EventService) SubmitTestEvent(message string) error {
+func (eventservice *EventService) SubmitTestEvent(ctx context.Context, message string) error {
 	type temp struct {
 		EventGroupID      string `json:"EventGroupId"`
 		EventID           string `json:"EventId"`
@@ -346,7 +349,7 @@ func (eventservice *EventService) SubmitTestEvent(message string) error {
 		Severity:          "Informational",
 	}
 
-	_, err := eventservice.Client.Post(eventservice.submitTestEventTarget, t)
+	_, err := eventservice.Client.Post(ctx, eventservice.submitTestEventTarget, t)
 	return err
 }
 

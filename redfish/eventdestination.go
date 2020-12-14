@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -239,7 +240,7 @@ func (eventdestination *EventDestination) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (eventdestination *EventDestination) Update() error {
+func (eventdestination *EventDestination) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -254,17 +255,17 @@ func (eventdestination *EventDestination) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(eventdestination).Elem()
 
-	return eventdestination.Entity.Update(originalElement, currentElement, readWriteFields)
+	return eventdestination.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetEventDestination will get a EventDestination instance from the service.
-func GetEventDestination(c common.Client, uri string) (*EventDestination, error) {
+func GetEventDestination(ctx context.Context, c common.Client, uri string) (*EventDestination, error) {
 	// validate uri
 	if len(strings.TrimSpace(uri)) == 0 {
 		return nil, fmt.Errorf("uri should not be empty")
 	}
 
-	resp, err := c.Get(uri)
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -338,6 +339,7 @@ func validateCreateEventDestinationParams(
 // It returns the new subscription URI if the event subscription is created
 // with success or any error encountered.
 func CreateEventDestination(
+	ctx context.Context,
 	c common.Client,
 	uri string,
 	destination string,
@@ -377,7 +379,7 @@ func CreateEventDestination(
 		s.Oem = oem
 	}
 
-	resp, err := c.Post(uri, s)
+	resp, err := c.Post(ctx, uri, s)
 	if err != nil {
 		return "", err
 	}
@@ -393,12 +395,12 @@ func CreateEventDestination(
 }
 
 // DeleteEventDestination will delete a EventDestination.
-func DeleteEventDestination(c common.Client, uri string) (err error) {
+func DeleteEventDestination(ctx context.Context, c common.Client, uri string) (err error) {
 	// validate uri
 	if len(strings.TrimSpace(uri)) == 0 {
 		return fmt.Errorf("uri should not be empty")
 	}
-	_, err = c.Delete(uri)
+	_, err = c.Delete(ctx, uri)
 	//defer resp.Body.Close()
 
 	return err
@@ -406,19 +408,19 @@ func DeleteEventDestination(c common.Client, uri string) (err error) {
 
 // ListReferencedEventDestinations gets the collection of EventDestination from
 // a provided reference.
-func ListReferencedEventDestinations(c common.Client, link string) ([]*EventDestination, error) {
+func ListReferencedEventDestinations(ctx context.Context, c common.Client, link string) ([]*EventDestination, error) {
 	var result []*EventDestination
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, eventdestinationLink := range links.ItemLinks {
-		eventdestination, err := GetEventDestination(c, eventdestinationLink)
+		eventdestination, err := GetEventDestination(ctx, c, eventdestinationLink)
 		if err != nil {
 			return result, err
 		}

@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -178,8 +179,8 @@ func (pciefunction *PCIeFunction) UnmarshalJSON(b []byte) error {
 }
 
 // GetPCIeFunction will get a PCIeFunction instance from the service.
-func GetPCIeFunction(c common.Client, uri string) (*PCIeFunction, error) {
-	resp, err := c.Get(uri)
+func GetPCIeFunction(ctx context.Context, c common.Client, uri string) (*PCIeFunction, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -197,19 +198,19 @@ func GetPCIeFunction(c common.Client, uri string) (*PCIeFunction, error) {
 
 // ListReferencedPCIeFunctions gets the collection of PCIeFunction from
 // a provided reference.
-func ListReferencedPCIeFunctions(c common.Client, link string) ([]*PCIeFunction, error) {
+func ListReferencedPCIeFunctions(ctx context.Context, c common.Client, link string) ([]*PCIeFunction, error) {
 	var result []*PCIeFunction
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, pciefunctionLink := range links.ItemLinks {
-		pciefunction, err := GetPCIeFunction(c, pciefunctionLink)
+		pciefunction, err := GetPCIeFunction(ctx, c, pciefunctionLink)
 		if err != nil {
 			return result, err
 		}
@@ -220,10 +221,10 @@ func ListReferencedPCIeFunctions(c common.Client, link string) ([]*PCIeFunction,
 }
 
 // Drives gets the PCIe function's drives.
-func (pciefunction *PCIeFunction) Drives() ([]*Drive, error) {
+func (pciefunction *PCIeFunction) Drives(ctx context.Context) ([]*Drive, error) {
 	var result []*Drive
 	for _, driveLink := range pciefunction.drives {
-		drive, err := GetDrive(pciefunction.Client, driveLink)
+		drive, err := GetDrive(ctx, pciefunction.Client, driveLink)
 		if err != nil {
 			return result, err
 		}
@@ -233,10 +234,10 @@ func (pciefunction *PCIeFunction) Drives() ([]*Drive, error) {
 }
 
 // EthernetInterfaces gets the PCIe function's ethernet interfaces.
-func (pciefunction *PCIeFunction) EthernetInterfaces() ([]*EthernetInterface, error) {
+func (pciefunction *PCIeFunction) EthernetInterfaces(ctx context.Context) ([]*EthernetInterface, error) {
 	var result []*EthernetInterface
 	for _, ethLink := range pciefunction.ethernetInterfaces {
-		eth, err := GetEthernetInterface(pciefunction.Client, ethLink)
+		eth, err := GetEthernetInterface(ctx, pciefunction.Client, ethLink)
 		if err != nil {
 			return result, err
 		}
@@ -246,10 +247,10 @@ func (pciefunction *PCIeFunction) EthernetInterfaces() ([]*EthernetInterface, er
 }
 
 // NetworkDeviceFunctions gets the PCIe function's ethernet interfaces.
-func (pciefunction *PCIeFunction) NetworkDeviceFunctions() ([]*NetworkDeviceFunction, error) {
+func (pciefunction *PCIeFunction) NetworkDeviceFunctions(ctx context.Context) ([]*NetworkDeviceFunction, error) {
 	var result []*NetworkDeviceFunction
 	for _, netLink := range pciefunction.networkDeviceFunctions {
-		net, err := GetNetworkDeviceFunction(pciefunction.Client, netLink)
+		net, err := GetNetworkDeviceFunction(ctx, pciefunction.Client, netLink)
 		if err != nil {
 			return result, err
 		}
@@ -259,18 +260,18 @@ func (pciefunction *PCIeFunction) NetworkDeviceFunctions() ([]*NetworkDeviceFunc
 }
 
 // PCIeDevice gets the associated PCIe device for this function.
-func (pciefunction *PCIeFunction) PCIeDevice() (*PCIeDevice, error) {
+func (pciefunction *PCIeFunction) PCIeDevice(ctx context.Context) (*PCIeDevice, error) {
 	if pciefunction.pcieDevice == "" {
 		return nil, nil
 	}
-	return GetPCIeDevice(pciefunction.Client, pciefunction.pcieDevice)
+	return GetPCIeDevice(ctx, pciefunction.Client, pciefunction.pcieDevice)
 }
 
 // StorageControllers gets the associated storage controllers.
-func (pciefunction *PCIeFunction) StorageControllers() ([]*StorageController, error) {
+func (pciefunction *PCIeFunction) StorageControllers(ctx context.Context) ([]*StorageController, error) {
 	var result []*StorageController
 	for _, scLink := range pciefunction.storageControllers {
-		sc, err := GetStorageController(pciefunction.Client, scLink)
+		sc, err := GetStorageController(ctx, pciefunction.Client, scLink)
 		if err != nil {
 			return result, err
 		}

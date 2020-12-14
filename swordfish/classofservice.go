@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -86,8 +87,8 @@ func (classofservice *ClassOfService) UnmarshalJSON(b []byte) error {
 }
 
 // GetClassOfService will get a ClassOfService instance from the service.
-func GetClassOfService(c common.Client, uri string) (*ClassOfService, error) {
-	resp, err := c.Get(uri)
+func GetClassOfService(ctx context.Context, c common.Client, uri string) (*ClassOfService, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -105,19 +106,19 @@ func GetClassOfService(c common.Client, uri string) (*ClassOfService, error) {
 
 // ListReferencedClassOfServices gets the collection of ClassOfService from
 // a provided reference.
-func ListReferencedClassOfServices(c common.Client, link string) ([]*ClassOfService, error) {
+func ListReferencedClassOfServices(ctx context.Context, c common.Client, link string) ([]*ClassOfService, error) {
 	var result []*ClassOfService
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, classofserviceLink := range links.ItemLinks {
-		classofservice, err := GetClassOfService(c, classofserviceLink)
+		classofservice, err := GetClassOfService(ctx, c, classofserviceLink)
 		if err != nil {
 			return result, err
 		}
@@ -129,10 +130,10 @@ func ListReferencedClassOfServices(c common.Client, link string) ([]*ClassOfServ
 
 // DataProtectionLinesOfServices gets the DataProtectionLinesOfService that are
 // part of this ClassOfService.
-func (classofservice *ClassOfService) DataProtectionLinesOfServices() ([]*DataProtectionLineOfService, error) {
+func (classofservice *ClassOfService) DataProtectionLinesOfServices(ctx context.Context) ([]*DataProtectionLineOfService, error) {
 	var result []*DataProtectionLineOfService
 	for _, dpLosLink := range classofservice.dataProtectionLinesOfService {
-		dpLos, err := GetDataProtectionLineOfService(classofservice.Client, dpLosLink)
+		dpLos, err := GetDataProtectionLineOfService(ctx, classofservice.Client, dpLosLink)
 		if err != nil {
 			return result, nil
 		}
@@ -143,10 +144,10 @@ func (classofservice *ClassOfService) DataProtectionLinesOfServices() ([]*DataPr
 
 // DataSecurityLinesOfServices gets the DataSecurityLinesOfService that are
 // part of this ClassOfService.
-func (classofservice *ClassOfService) DataSecurityLinesOfServices() ([]*DataSecurityLineOfService, error) {
+func (classofservice *ClassOfService) DataSecurityLinesOfServices(ctx context.Context) ([]*DataSecurityLineOfService, error) {
 	var result []*DataSecurityLineOfService
 	for _, dsLosLink := range classofservice.dataSecurityLinesOfService {
-		dsLos, err := GetDataSecurityLineOfService(classofservice.Client, dsLosLink)
+		dsLos, err := GetDataSecurityLineOfService(ctx, classofservice.Client, dsLosLink)
 		if err != nil {
 			return result, nil
 		}
@@ -157,10 +158,10 @@ func (classofservice *ClassOfService) DataSecurityLinesOfServices() ([]*DataSecu
 
 // DataStorageLinesOfServices gets the DataStorageLinesOfService that are
 // part of this ClassOfService.
-func (classofservice *ClassOfService) DataStorageLinesOfServices() ([]*DataStorageLineOfService, error) {
+func (classofservice *ClassOfService) DataStorageLinesOfServices(ctx context.Context) ([]*DataStorageLineOfService, error) {
 	var result []*DataStorageLineOfService
 	for _, dsLosLink := range classofservice.dataStorageLinesOfService {
-		dsLos, err := GetDataStorageLineOfService(classofservice.Client, dsLosLink)
+		dsLos, err := GetDataStorageLineOfService(ctx, classofservice.Client, dsLosLink)
 		if err != nil {
 			return result, nil
 		}
@@ -171,10 +172,10 @@ func (classofservice *ClassOfService) DataStorageLinesOfServices() ([]*DataStora
 
 // IOConnectivityLinesOfServices gets the IOConnectivityLinesOfService that are
 // part of this ClassOfService.
-func (classofservice *ClassOfService) IOConnectivityLinesOfServices() ([]*IOConnectivityLineOfService, error) {
+func (classofservice *ClassOfService) IOConnectivityLinesOfServices(ctx context.Context) ([]*IOConnectivityLineOfService, error) {
 	var result []*IOConnectivityLineOfService
 	for _, ioLosLink := range classofservice.dataSecurityLinesOfService {
-		ioLos, err := GetIOConnectivityLineOfService(classofservice.Client, ioLosLink)
+		ioLos, err := GetIOConnectivityLineOfService(ctx, classofservice.Client, ioLosLink)
 		if err != nil {
 			return result, nil
 		}
@@ -185,10 +186,10 @@ func (classofservice *ClassOfService) IOConnectivityLinesOfServices() ([]*IOConn
 
 // IOPerformanceLinesOfServices gets the IOPerformanceLinesOfService that are
 // part of this ClassOfService.
-func (classofservice *ClassOfService) IOPerformanceLinesOfServices() ([]*IOPerformanceLineOfService, error) {
+func (classofservice *ClassOfService) IOPerformanceLinesOfServices(ctx context.Context) ([]*IOPerformanceLineOfService, error) {
 	var result []*IOPerformanceLineOfService
 	for _, ioLosLink := range classofservice.dataSecurityLinesOfService {
-		ioLos, err := GetIOPerformanceLineOfService(classofservice.Client, ioLosLink)
+		ioLos, err := GetIOPerformanceLineOfService(ctx, classofservice.Client, ioLosLink)
 		if err != nil {
 			return result, nil
 		}

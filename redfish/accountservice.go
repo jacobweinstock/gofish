@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -286,7 +287,7 @@ func (accountservice *AccountService) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (accountservice *AccountService) Update() error {
+func (accountservice *AccountService) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -306,13 +307,13 @@ func (accountservice *AccountService) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(accountservice).Elem()
 
-	return accountservice.Entity.Update(originalElement, currentElement, readWriteFields)
+	return accountservice.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetAccountService will get the AccountService instance from the Redfish
 // service.
-func GetAccountService(c common.Client, uri string) (*AccountService, error) {
-	resp, err := c.Get(uri)
+func GetAccountService(ctx context.Context, c common.Client, uri string) (*AccountService, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -329,11 +330,11 @@ func GetAccountService(c common.Client, uri string) (*AccountService, error) {
 }
 
 // Accounts get the accounts from the account service
-func (accountservice *AccountService) Accounts() ([]*ManagerAccount, error) {
-	return ListReferencedManagerAccounts(accountservice.Client, accountservice.accounts)
+func (accountservice *AccountService) Accounts(ctx context.Context) ([]*ManagerAccount, error) {
+	return ListReferencedManagerAccounts(ctx, accountservice.Client, accountservice.accounts)
 }
 
 // Roles gets the roles from the account service
-func (accountservice *AccountService) Roles() ([]*Role, error) {
-	return ListReferencedRoles(accountservice.Client, accountservice.roles)
+func (accountservice *AccountService) Roles(ctx context.Context) ([]*Role, error) {
+	return ListReferencedRoles(ctx, accountservice.Client, accountservice.roles)
 }

@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -572,7 +573,7 @@ func (computersystem *ComputerSystem) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (computersystem *ComputerSystem) Update() error {
+func (computersystem *ComputerSystem) Update(ctx context.Context) error {
 	// Get a representation of the object's original state so we can find what
 	// to update.
 	cs := new(ComputerSystem)
@@ -588,12 +589,12 @@ func (computersystem *ComputerSystem) Update() error {
 	originalElement := reflect.ValueOf(cs).Elem()
 	currentElement := reflect.ValueOf(computersystem).Elem()
 
-	return computersystem.Entity.Update(originalElement, currentElement, readWriteFields)
+	return computersystem.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetComputerSystem will get a ComputerSystem instance from the service.
-func GetComputerSystem(c common.Client, uri string) (*ComputerSystem, error) {
-	resp, err := c.Get(uri)
+func GetComputerSystem(ctx context.Context, c common.Client, uri string) (*ComputerSystem, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -611,15 +612,15 @@ func GetComputerSystem(c common.Client, uri string) (*ComputerSystem, error) {
 
 // ListReferencedComputerSystems gets the collection of ComputerSystem from
 // a provided reference.
-func ListReferencedComputerSystems(c common.Client, link string) ([]*ComputerSystem, error) {
+func ListReferencedComputerSystems(ctx context.Context, c common.Client, link string) ([]*ComputerSystem, error) {
 	var result []*ComputerSystem
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, computersystemLink := range links.ItemLinks {
-		computersystem, err := GetComputerSystem(c, computersystemLink)
+		computersystem, err := GetComputerSystem(ctx, c, computersystemLink)
 		if err != nil {
 			return result, err
 		}
@@ -630,44 +631,44 @@ func ListReferencedComputerSystems(c common.Client, link string) ([]*ComputerSys
 }
 
 // Bios gets the Bios information for this ComputerSystem.
-func (computersystem *ComputerSystem) Bios() (*Bios, error) {
+func (computersystem *ComputerSystem) Bios(ctx context.Context) (*Bios, error) {
 	if computersystem.bios == "" {
 		return nil, nil
 	}
 
-	return GetBios(computersystem.Client, computersystem.bios)
+	return GetBios(ctx, computersystem.Client, computersystem.bios)
 }
 
 // EthernetInterfaces get this system's ethernet interfaces.
-func (computersystem *ComputerSystem) EthernetInterfaces() ([]*EthernetInterface, error) {
-	return ListReferencedEthernetInterfaces(computersystem.Client, computersystem.ethernetInterfaces)
+func (computersystem *ComputerSystem) EthernetInterfaces(ctx context.Context) ([]*EthernetInterface, error) {
+	return ListReferencedEthernetInterfaces(ctx, computersystem.Client, computersystem.ethernetInterfaces)
 }
 
 // LogServices get this system's log services.
-func (computersystem *ComputerSystem) LogServices() ([]*LogService, error) {
-	return ListReferencedLogServices(computersystem.Client, computersystem.logServices)
+func (computersystem *ComputerSystem) LogServices(ctx context.Context) ([]*LogService, error) {
+	return ListReferencedLogServices(ctx, computersystem.Client, computersystem.logServices)
 }
 
 // Memory gets this system's memory.
-func (computersystem *ComputerSystem) Memory() ([]*Memory, error) {
-	return ListReferencedMemorys(computersystem.Client, computersystem.memory)
+func (computersystem *ComputerSystem) Memory(ctx context.Context) ([]*Memory, error) {
+	return ListReferencedMemorys(ctx, computersystem.Client, computersystem.memory)
 }
 
 // MemoryDomains gets this system's memory domains.
-func (computersystem *ComputerSystem) MemoryDomains() ([]*MemoryDomain, error) {
-	return ListReferencedMemoryDomains(computersystem.Client, computersystem.memoryDomains)
+func (computersystem *ComputerSystem) MemoryDomains(ctx context.Context) ([]*MemoryDomain, error) {
+	return ListReferencedMemoryDomains(ctx, computersystem.Client, computersystem.memoryDomains)
 }
 
 // NetworkInterfaces returns a collection of network interfaces in this system.
-func (computersystem *ComputerSystem) NetworkInterfaces() ([]*NetworkInterface, error) {
-	return ListReferencedNetworkInterfaces(computersystem.Client, computersystem.networkInterfaces)
+func (computersystem *ComputerSystem) NetworkInterfaces(ctx context.Context) ([]*NetworkInterface, error) {
+	return ListReferencedNetworkInterfaces(ctx, computersystem.Client, computersystem.networkInterfaces)
 }
 
 // PCIeDevices gets all PCIeDevices for this system.
-func (computersystem *ComputerSystem) PCIeDevices() ([]*PCIeDevice, error) {
+func (computersystem *ComputerSystem) PCIeDevices(ctx context.Context) ([]*PCIeDevice, error) {
 	var result []*PCIeDevice
 	for _, pciedeviceLink := range computersystem.pcieDevices {
-		pciedevice, err := GetPCIeDevice(computersystem.Client, pciedeviceLink)
+		pciedevice, err := GetPCIeDevice(ctx, computersystem.Client, pciedeviceLink)
 		if err != nil {
 			return result, err
 		}
@@ -677,10 +678,10 @@ func (computersystem *ComputerSystem) PCIeDevices() ([]*PCIeDevice, error) {
 }
 
 // PCIeFunctions gets all PCIeFunctions for this system.
-func (computersystem *ComputerSystem) PCIeFunctions() ([]*PCIeFunction, error) {
+func (computersystem *ComputerSystem) PCIeFunctions(ctx context.Context) ([]*PCIeFunction, error) {
 	var result []*PCIeFunction
 	for _, pciefunctionLink := range computersystem.pcieFunctions {
-		pciefunction, err := GetPCIeFunction(computersystem.Client, pciefunctionLink)
+		pciefunction, err := GetPCIeFunction(ctx, computersystem.Client, pciefunctionLink)
 		if err != nil {
 			return result, err
 		}
@@ -690,21 +691,21 @@ func (computersystem *ComputerSystem) PCIeFunctions() ([]*PCIeFunction, error) {
 }
 
 // Processors returns a collection of processors from this system
-func (computersystem *ComputerSystem) Processors() ([]*Processor, error) {
-	return ListReferencedProcessors(computersystem.Client, computersystem.processors)
+func (computersystem *ComputerSystem) Processors(ctx context.Context) ([]*Processor, error) {
+	return ListReferencedProcessors(ctx, computersystem.Client, computersystem.processors)
 }
 
 // SecureBoot gets the secure boot information for the system.
-func (computersystem *ComputerSystem) SecureBoot() (*SecureBoot, error) {
+func (computersystem *ComputerSystem) SecureBoot(ctx context.Context) (*SecureBoot, error) {
 	if computersystem.secureBoot == "" {
 		return nil, nil
 	}
 
-	return GetSecureBoot(computersystem.Client, computersystem.secureBoot)
+	return GetSecureBoot(ctx, computersystem.Client, computersystem.secureBoot)
 }
 
 // SetBoot set a boot object based on a payload request
-func (computersystem *ComputerSystem) SetBoot(b Boot) error {
+func (computersystem *ComputerSystem) SetBoot(ctx context.Context, b Boot) error {
 	type temp struct {
 		Boot Boot
 	}
@@ -712,7 +713,7 @@ func (computersystem *ComputerSystem) SetBoot(b Boot) error {
 		Boot: b,
 	}
 
-	_, err := computersystem.Client.Patch(computersystem.ODataID, t)
+	_, err := computersystem.Client.Patch(ctx, computersystem.ODataID, t)
 	return err
 }
 
@@ -722,7 +723,7 @@ func (computersystem *ComputerSystem) SetBoot(b Boot) error {
 // the system or perform an ACPI Power Button Override (commonly known as a
 // 4-second hold of the Power Button). The ForceRestart value shall perform a
 // ForceOff action followed by a On action.
-func (computersystem *ComputerSystem) Reset(resetType ResetType) error {
+func (computersystem *ComputerSystem) Reset(ctx context.Context, resetType ResetType) error {
 	// Make sure the requested reset type is supported by the system
 	valid := false
 	if len(computersystem.SupportedResetTypes) > 0 {
@@ -749,29 +750,29 @@ func (computersystem *ComputerSystem) Reset(resetType ResetType) error {
 		ResetType: resetType,
 	}
 
-	_, err := computersystem.Client.Post(computersystem.resetTarget, t)
+	_, err := computersystem.Client.Post(ctx, computersystem.resetTarget, t)
 	return err
 }
 
 // SetDefaultBootOrder shall set the BootOrder array to the default settings.
-func (computersystem *ComputerSystem) SetDefaultBootOrder() error {
+func (computersystem *ComputerSystem) SetDefaultBootOrder(ctx context.Context) error {
 	// This action wasn't added until 1.5.0, make sure this is supported.
 	if computersystem.setDefaultBootOrderTarget == "" {
 		return fmt.Errorf("SetDefaultBootOrder is not supported by this system")
 	}
 
-	_, err := computersystem.Client.Post(computersystem.setDefaultBootOrderTarget, nil)
+	_, err := computersystem.Client.Post(ctx, computersystem.setDefaultBootOrderTarget, nil)
 	return err
 }
 
 // SimpleStorages gets all simple storage services of this system.
-func (computersystem *ComputerSystem) SimpleStorages() ([]*SimpleStorage, error) {
-	return ListReferencedSimpleStorages(computersystem.Client, computersystem.simpleStorage)
+func (computersystem *ComputerSystem) SimpleStorages(ctx context.Context) ([]*SimpleStorage, error) {
+	return ListReferencedSimpleStorages(ctx, computersystem.Client, computersystem.simpleStorage)
 }
 
 // Storage gets the storage associated with this system.
-func (computersystem *ComputerSystem) Storage() ([]*Storage, error) {
-	return ListReferencedStorages(computersystem.Client, computersystem.storage)
+func (computersystem *ComputerSystem) Storage(ctx context.Context) ([]*Storage, error) {
+	return ListReferencedStorages(ctx, computersystem.Client, computersystem.storage)
 }
 
 // CSLinks are references to resources that are related to, but not contained

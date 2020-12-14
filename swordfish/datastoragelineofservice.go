@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -69,8 +70,8 @@ func (datastoragelineofservice *DataStorageLineOfService) UnmarshalJSON(b []byte
 }
 
 // GetDataStorageLineOfService will get a DataStorageLineOfService instance from the service.
-func GetDataStorageLineOfService(c common.Client, uri string) (*DataStorageLineOfService, error) {
-	resp, err := c.Get(uri)
+func GetDataStorageLineOfService(ctx context.Context, c common.Client, uri string) (*DataStorageLineOfService, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -88,19 +89,19 @@ func GetDataStorageLineOfService(c common.Client, uri string) (*DataStorageLineO
 
 // ListReferencedDataStorageLineOfServices gets the collection of DataStorageLineOfService from
 // a provided reference.
-func ListReferencedDataStorageLineOfServices(c common.Client, link string) ([]*DataStorageLineOfService, error) {
+func ListReferencedDataStorageLineOfServices(ctx context.Context, c common.Client, link string) ([]*DataStorageLineOfService, error) {
 	var result []*DataStorageLineOfService
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, datastoragelineofserviceLink := range links.ItemLinks {
-		datastoragelineofservice, err := GetDataStorageLineOfService(c, datastoragelineofserviceLink)
+		datastoragelineofservice, err := GetDataStorageLineOfService(ctx, c, datastoragelineofserviceLink)
 		if err != nil {
 			return result, err
 		}

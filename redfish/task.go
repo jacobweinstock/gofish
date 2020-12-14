@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -152,8 +153,8 @@ func (task *Task) UnmarshalJSON(b []byte) error {
 }
 
 // GetTask will get a Task instance from the service.
-func GetTask(c common.Client, uri string) (*Task, error) {
-	resp, err := c.Get(uri)
+func GetTask(ctx context.Context, c common.Client, uri string) (*Task, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -171,19 +172,19 @@ func GetTask(c common.Client, uri string) (*Task, error) {
 
 // ListReferencedTasks gets the collection of Task from
 // a provided reference.
-func ListReferencedTasks(c common.Client, link string) ([]*Task, error) {
+func ListReferencedTasks(ctx context.Context, c common.Client, link string) ([]*Task, error) {
 	var result []*Task
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, taskLink := range links.ItemLinks {
-		task, err := GetTask(c, taskLink)
+		task, err := GetTask(ctx, c, taskLink)
 		if err != nil {
 			return result, err
 		}

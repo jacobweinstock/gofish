@@ -6,6 +6,7 @@ package redfish
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -130,7 +131,7 @@ func TestEventServiceUpdate(t *testing.T) {
 	result.DeliveryRetryAttempts = 20
 	result.DeliveryRetryIntervalSeconds = 60
 	result.ServiceEnabled = true
-	err = result.Update()
+	err = result.Update(context.Background())
 
 	if err != nil {
 		t.Errorf("Error making Update call: %s", err)
@@ -201,6 +202,7 @@ func TestEventServiceCreateEventSubscription(t *testing.T) {
 
 	// create event subscription
 	subscriptionURI, err := result.CreateEventSubscription(
+		context.Background(),
 		"https://myeventreciever/eventreceiver",
 		[]EventType{SupportedEventTypes["Alert"]},
 		map[string]string{
@@ -269,6 +271,7 @@ func TestEventServiceDeleteEventSubscription(t *testing.T) {
 
 	// create event subscription
 	err = result.DeleteEventSubscription(
+		context.Background(),
 		"/redfish/v1/EventService/Subscriptions/SubscriptionId/")
 
 	// validate the return values
@@ -307,6 +310,7 @@ func TestEventServiceGetEventSubscription(t *testing.T) {
 
 	// create event subscription
 	eventDestination, err := result.GetEventSubscription(
+		context.Background(),
 		"/redfish/v1/EventService/Subscriptions/EventDestination-1/")
 
 	// validate the return values
@@ -355,7 +359,7 @@ func TestEventServiceGetEventSubscriptions(t *testing.T) {
 	result.SetClient(testClient)
 
 	// create event subscription
-	eventDestinations, err := result.GetEventSubscriptions()
+	eventDestinations, err := result.GetEventSubscriptions(context.Background())
 
 	// validate the return values
 	if eventDestinations[0].ID != "EventDestination-1" {
@@ -403,6 +407,7 @@ func TestEventServiceCreateEventSubscriptionWithoutOptionalParameters(t *testing
 
 	// create event subscription
 	subscriptionURI, err := result.CreateEventSubscription(
+		context.Background(),
 		"https://myeventreciever/eventreceiver",
 		[]EventType{SupportedEventTypes["Alert"]},
 		nil,
@@ -454,6 +459,7 @@ func TestEventServiceCreateEventSubscriptionInputParametersValidation(t *testing
 	// create event subscription invalid destination
 	invalidDestination := "myeventreciever/eventreceiver"
 	_, err = result.CreateEventSubscription(
+		context.Background(),
 		invalidDestination,
 		[]EventType{SupportedEventTypes["Alert"]},
 		nil,
@@ -473,6 +479,7 @@ func TestEventServiceCreateEventSubscriptionInputParametersValidation(t *testing
 	// create event subscription invalid destination
 	invalidDestination = ""
 	_, err = result.CreateEventSubscription(
+		context.Background(),
 		invalidDestination,
 		[]EventType{SupportedEventTypes["Alert"]},
 		nil,
@@ -492,6 +499,7 @@ func TestEventServiceCreateEventSubscriptionInputParametersValidation(t *testing
 	// create event subscription invalid destination
 	invalidDestination = "   "
 	_, err = result.CreateEventSubscription(
+		context.Background(),
 		invalidDestination,
 		[]EventType{SupportedEventTypes["Alert"]},
 		nil,
@@ -510,6 +518,7 @@ func TestEventServiceCreateEventSubscriptionInputParametersValidation(t *testing
 
 	// create event subscription empty event type
 	_, err = result.CreateEventSubscription(
+		context.Background(),
 		"https://myeventreciever/eventreceiver",
 		[]EventType{},
 		nil,
@@ -528,6 +537,7 @@ func TestEventServiceCreateEventSubscriptionInputParametersValidation(t *testing
 
 	// create event subscription nil event type
 	_, err = result.CreateEventSubscription(
+		context.Background(),
 		"https://myeventreciever/eventreceiver",
 		nil,
 		nil,
@@ -548,6 +558,7 @@ func TestEventServiceCreateEventSubscriptionInputParametersValidation(t *testing
 	// subscription link in the event service
 	result.subscriptions = ""
 	_, err = result.CreateEventSubscription(
+		context.Background(),
 		"https://myeventreciever/eventreceiver",
 		[]EventType{SupportedEventTypes["Alert"]},
 		nil,
@@ -574,7 +585,7 @@ func TestEventServiceDeleteEventSubscriptionInputParametersValidation(t *testing
 		t.Errorf("Error decoding JSON: %s", err)
 	}
 	// delete event subscription
-	err = result.DeleteEventSubscription("")
+	err = result.DeleteEventSubscription(context.Background(), "")
 
 	// validate the returned error
 	expectedError := "uri should not be empty"
@@ -585,7 +596,7 @@ func TestEventServiceDeleteEventSubscriptionInputParametersValidation(t *testing
 	}
 
 	// delete event subscription
-	err = result.DeleteEventSubscription(" ")
+	err = result.DeleteEventSubscription(context.Background(), " ")
 
 	// validate the returned error
 	expectedError = "uri should not be empty"
@@ -605,7 +616,7 @@ func TestEventServiceGetEventSubscriptionInputParametersValidation(t *testing.T)
 		t.Errorf("Error decoding JSON: %s", err)
 	}
 	// get event subscription
-	_, err = result.GetEventSubscription("")
+	_, err = result.GetEventSubscription(context.Background(), "")
 
 	// validate the returned error
 	expectedError := "uri should not be empty"
@@ -616,7 +627,7 @@ func TestEventServiceGetEventSubscriptionInputParametersValidation(t *testing.T)
 	}
 
 	// get event subscription
-	_, err = result.GetEventSubscription(" ")
+	_, err = result.GetEventSubscription(context.Background(), " ")
 
 	// validate the returned error
 	expectedError = "uri should not be empty"
@@ -639,7 +650,7 @@ func TestEventServiceGetEventSubscriptionsEmptySubscriptionsLink(t *testing.T) {
 
 	// get event subscriptions with empty subscription link
 	result.subscriptions = ""
-	_, err = result.GetEventSubscriptions()
+	_, err = result.GetEventSubscriptions(context.Background())
 
 	// validate the returned error
 	expectedError := "empty subscription link in the event service"

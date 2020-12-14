@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -417,8 +418,8 @@ func (logentry *LogEntry) UnmarshalJSON(b []byte) error {
 }
 
 // GetLogEntry will get a LogEntry instance from the service.
-func GetLogEntry(c common.Client, uri string) (*LogEntry, error) {
-	resp, err := c.Get(uri)
+func GetLogEntry(ctx context.Context, c common.Client, uri string) (*LogEntry, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -436,19 +437,19 @@ func GetLogEntry(c common.Client, uri string) (*LogEntry, error) {
 
 // ListReferencedLogEntrys gets the collection of LogEntry from
 // a provided reference.
-func ListReferencedLogEntrys(c common.Client, link string) ([]*LogEntry, error) {
+func ListReferencedLogEntrys(ctx context.Context, c common.Client, link string) ([]*LogEntry, error) {
 	var result []*LogEntry
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, logentryLink := range links.ItemLinks {
-		logentry, err := GetLogEntry(c, logentryLink)
+		logentry, err := GetLogEntry(ctx, c, logentryLink)
 		if err != nil {
 			return result, err
 		}

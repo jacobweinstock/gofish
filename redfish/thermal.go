@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -325,8 +326,8 @@ func (thermal *Thermal) UnmarshalJSON(b []byte) error {
 // }
 
 // GetThermal will get a Thermal instance from the service.
-func GetThermal(c common.Client, uri string) (*Thermal, error) {
-	resp, err := c.Get(uri)
+func GetThermal(ctx context.Context, c common.Client, uri string) (*Thermal, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -343,19 +344,19 @@ func GetThermal(c common.Client, uri string) (*Thermal, error) {
 }
 
 // ListReferencedThermals gets the collection of Thermal from a provided reference.
-func ListReferencedThermals(c common.Client, link string) ([]*Thermal, error) {
+func ListReferencedThermals(ctx context.Context, c common.Client, link string) ([]*Thermal, error) {
 	var result []*Thermal
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, thermalLink := range links.ItemLinks {
-		thermal, err := GetThermal(c, thermalLink)
+		thermal, err := GetThermal(ctx, c, thermalLink)
 		if err != nil {
 			return result, err
 		}

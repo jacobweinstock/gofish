@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -72,7 +73,7 @@ func TestRedundancyUpdate(t *testing.T) {
 
 	result.Mode = NotRedundantRedundancyMode
 	result.RedundancyEnabled = true
-	err = result.Update()
+	err = result.Update(context.Background())
 
 	if err != nil {
 		t.Errorf("Error making Update call: %s", err)

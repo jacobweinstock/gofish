@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -119,7 +120,7 @@ func (logservice *LogService) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (logservice *LogService) Update() error {
+func (logservice *LogService) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -135,12 +136,12 @@ func (logservice *LogService) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(logservice).Elem()
 
-	return logservice.Entity.Update(originalElement, currentElement, readWriteFields)
+	return logservice.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetLogService will get a LogService instance from the service.
-func GetLogService(c common.Client, uri string) (*LogService, error) {
-	resp, err := c.Get(uri)
+func GetLogService(ctx context.Context, c common.Client, uri string) (*LogService, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -157,19 +158,19 @@ func GetLogService(c common.Client, uri string) (*LogService, error) {
 }
 
 // ListReferencedLogServices gets the collection of LogService from a provided reference.
-func ListReferencedLogServices(c common.Client, link string) ([]*LogService, error) {
+func ListReferencedLogServices(ctx context.Context, c common.Client, link string) ([]*LogService, error) {
 	var result []*LogService
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, logserviceLink := range links.ItemLinks {
-		logservice, err := GetLogService(c, logserviceLink)
+		logservice, err := GetLogService(ctx, c, logserviceLink)
 		if err != nil {
 			return result, err
 		}
@@ -180,13 +181,13 @@ func ListReferencedLogServices(c common.Client, link string) ([]*LogService, err
 }
 
 // Entries gets the log entries of this service.
-func (logservice *LogService) Entries() ([]*LogEntry, error) {
-	return ListReferencedLogEntrys(logservice.Client, logservice.entries)
+func (logservice *LogService) Entries(ctx context.Context) ([]*LogEntry, error) {
+	return ListReferencedLogEntrys(ctx, logservice.Client, logservice.entries)
 }
 
 // ClearLog shall delete all entries found in the Entries collection for this
 // Log Service.
-func (logservice *LogService) ClearLog() error {
+func (logservice *LogService) ClearLog(ctx context.Context) error {
 	type temp struct {
 		Action string
 	}
@@ -194,6 +195,6 @@ func (logservice *LogService) ClearLog() error {
 		Action: "LogService.ClearLog",
 	}
 
-	_, err := logservice.Client.Post(logservice.clearLogTarget, t)
+	_, err := logservice.Client.Post(ctx, logservice.clearLogTarget, t)
 	return err
 }

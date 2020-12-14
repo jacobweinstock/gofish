@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -131,8 +132,8 @@ func (bios *Bios) UnmarshalJSON(b []byte) error {
 }
 
 // GetBios will get a Bios instance from the service.
-func GetBios(c common.Client, uri string) (*Bios, error) {
-	resp, err := c.Get(uri)
+func GetBios(ctx context.Context, c common.Client, uri string) (*Bios, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -149,19 +150,19 @@ func GetBios(c common.Client, uri string) (*Bios, error) {
 }
 
 // ListReferencedBioss gets the collection of Bios from a provided reference.
-func ListReferencedBioss(c common.Client, link string) ([]*Bios, error) {
+func ListReferencedBioss(ctx context.Context, c common.Client, link string) ([]*Bios, error) {
 	var result []*Bios
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, biosLink := range links.ItemLinks {
-		bios, err := GetBios(c, biosLink)
+		bios, err := GetBios(ctx, c, biosLink)
 		if err != nil {
 			return result, err
 		}
@@ -172,7 +173,7 @@ func ListReferencedBioss(c common.Client, link string) ([]*Bios, error) {
 }
 
 // ChangePassword shall change the selected BIOS password.
-func (bios *Bios) ChangePassword(passwordName string, oldPassword string, newPassword string) error {
+func (bios *Bios) ChangePassword(ctx context.Context, passwordName string, oldPassword string, newPassword string) error {
 	if passwordName == "" {
 		return fmt.Errorf("password name must be supplied")
 	}
@@ -194,15 +195,15 @@ func (bios *Bios) ChangePassword(passwordName string, oldPassword string, newPas
 		NewPassword:  newPassword,
 	}
 
-	_, err := bios.Client.Post(bios.changePasswordTarget, t)
+	_, err := bios.Client.Post(ctx, bios.changePasswordTarget, t)
 	return err
 }
 
 // ResetBios shall perform a reset of the BIOS attributes to their default values.
 // A system reset may be required for the default values to be applied. This
 // action may impact other resources.
-func (bios *Bios) ResetBios() error {
-	_, err := bios.Client.Post(bios.resetBiosTarget, nil)
+func (bios *Bios) ResetBios(ctx context.Context) error {
+	_, err := bios.Client.Post(ctx, bios.resetBiosTarget, nil)
 	return err
 }
 
@@ -222,7 +223,7 @@ func (bios *Bios) AllowedAttributeUpdateApplyTimes() []common.ApplyTime {
 }
 
 // UpdateBiosAttributes is used to update attribute values.
-func (bios *Bios) UpdateBiosAttributes(attrs BiosAttributes) error {
+func (bios *Bios) UpdateBiosAttributes(ctx context.Context, attrs BiosAttributes) error {
 
 	payload := make(map[string]interface{})
 
@@ -241,7 +242,7 @@ func (bios *Bios) UpdateBiosAttributes(attrs BiosAttributes) error {
 	// return the result.
 	if len(payload) > 0 {
 		data := map[string]interface{}{"Attributes": payload}
-		_, err := bios.Client.Patch(bios.settingsTarget, data)
+		_, err := bios.Client.Patch(ctx, bios.settingsTarget, data)
 		if err != nil {
 			return err
 		}

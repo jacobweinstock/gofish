@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -289,7 +290,7 @@ func (drive *Drive) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (drive *Drive) Update() error {
+func (drive *Drive) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -307,12 +308,12 @@ func (drive *Drive) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(drive).Elem()
 
-	return drive.Entity.Update(originalElement, currentElement, readWriteFields)
+	return drive.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetDrive will get a Drive instance from the service.
-func GetDrive(c common.Client, uri string) (*Drive, error) {
-	resp, err := c.Get(uri)
+func GetDrive(ctx context.Context, c common.Client, uri string) (*Drive, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -329,19 +330,19 @@ func GetDrive(c common.Client, uri string) (*Drive, error) {
 }
 
 // ListReferencedDrives gets the collection of Drives from a provided reference.
-func ListReferencedDrives(c common.Client, link string) ([]*Drive, error) {
+func ListReferencedDrives(ctx context.Context, c common.Client, link string) ([]*Drive, error) {
 	var result []*Drive
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, driveLink := range links.ItemLinks {
-		drive, err := GetDrive(c, driveLink)
+		drive, err := GetDrive(ctx, c, driveLink)
 		if err != nil {
 			return result, err
 		}
@@ -352,29 +353,29 @@ func ListReferencedDrives(c common.Client, link string) ([]*Drive, error) {
 }
 
 // Assembly gets the Assembly for this drive.
-func (drive *Drive) Assembly() (*Assembly, error) {
+func (drive *Drive) Assembly(ctx context.Context) (*Assembly, error) {
 	if drive.assembly == "" {
 		return nil, nil
 	}
 
-	return GetAssembly(drive.Client, drive.assembly)
+	return GetAssembly(ctx, drive.Client, drive.assembly)
 }
 
 // Chassis gets the containing chassis for this drive.
-func (drive *Drive) Chassis() (*Chassis, error) {
+func (drive *Drive) Chassis(ctx context.Context) (*Chassis, error) {
 	if drive.chassis == "" {
 		return nil, nil
 	}
 
-	return GetChassis(drive.Client, drive.chassis)
+	return GetChassis(ctx, drive.Client, drive.chassis)
 }
 
 // Endpoints references the Endpoints that this drive is associated with.
-func (drive *Drive) Endpoints() ([]*Endpoint, error) {
+func (drive *Drive) Endpoints(ctx context.Context) ([]*Endpoint, error) {
 	var result []*Endpoint
 
 	for _, endpointLink := range drive.endpoints {
-		endpoint, err := GetEndpoint(drive.Client, endpointLink)
+		endpoint, err := GetEndpoint(ctx, drive.Client, endpointLink)
 		if err != nil {
 			return result, err
 		}
@@ -385,11 +386,11 @@ func (drive *Drive) Endpoints() ([]*Endpoint, error) {
 }
 
 // Volumes references the Volumes that this drive is associated with.
-func (drive *Drive) Volumes() ([]*Volume, error) {
+func (drive *Drive) Volumes(ctx context.Context) ([]*Volume, error) {
 	var result []*Volume
 
 	for _, volumeLink := range drive.volumes {
-		volume, err := GetVolume(drive.Client, volumeLink)
+		volume, err := GetVolume(ctx, drive.Client, volumeLink)
 		if err != nil {
 			return result, err
 		}
@@ -400,11 +401,11 @@ func (drive *Drive) Volumes() ([]*Volume, error) {
 }
 
 // PCIeFunctions references the PCIeFunctions that this drive is associated with.
-func (drive *Drive) PCIeFunctions() ([]*PCIeFunction, error) {
+func (drive *Drive) PCIeFunctions(ctx context.Context) ([]*PCIeFunction, error) {
 	var result []*PCIeFunction
 
 	for _, pcieFunctionLink := range drive.pcieFunctions {
-		pcieFunction, err := GetPCIeFunction(drive.Client, pcieFunctionLink)
+		pcieFunction, err := GetPCIeFunction(ctx, drive.Client, pcieFunctionLink)
 		if err != nil {
 			return result, err
 		}
@@ -430,7 +431,7 @@ func (drive *Drive) PCIeFunctions() ([]*PCIeFunction, error) {
 // }
 
 // SecureErase shall perform a secure erase of the drive.
-func (drive *Drive) SecureErase() error {
-	_, err := drive.Client.Post(drive.secureEraseTarget, nil)
+func (drive *Drive) SecureErase(ctx context.Context) error {
+	_, err := drive.Client.Post(ctx, drive.secureEraseTarget, nil)
 	return err
 }

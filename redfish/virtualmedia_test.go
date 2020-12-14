@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -113,7 +114,7 @@ func TestVirtualMediaUpdate(t *testing.T) {
 
 	result.UserName = "Fred"
 	result.WriteProtected = false
-	err = result.Update()
+	err = result.Update(context.Background())
 
 	if err != nil {
 		t.Errorf("Error making Update call: %s", err)
@@ -142,7 +143,7 @@ func TestVirtualMediaEject(t *testing.T) {
 	testClient := &common.TestClient{}
 	result.SetClient(testClient)
 
-	err = result.EjectMedia()
+	err = result.EjectMedia(context.Background())
 
 	if err != nil {
 		t.Errorf("Error making EjectMedia call: %s", err)
@@ -167,7 +168,7 @@ func TestVirtualMediaInsert(t *testing.T) {
 	testClient := &common.TestClient{}
 	result.SetClient(testClient)
 
-	err = result.InsertMedia("https://example.com/image", false, true)
+	err = result.InsertMedia(context.Background(), "https://example.com/image", false, true)
 
 	if err != nil {
 		t.Errorf("Error making InsertMedia call: %s", err)

@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -229,7 +230,7 @@ func (filesystem *FileSystem) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (filesystem *FileSystem) Update() error {
+func (filesystem *FileSystem) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -252,12 +253,12 @@ func (filesystem *FileSystem) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(filesystem).Elem()
 
-	return filesystem.Entity.Update(originalElement, currentElement, readWriteFields)
+	return filesystem.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetFileSystem will get a FileSystem instance from the service.
-func GetFileSystem(c common.Client, uri string) (*FileSystem, error) {
-	resp, err := c.Get(uri)
+func GetFileSystem(ctx context.Context, c common.Client, uri string) (*FileSystem, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -275,19 +276,19 @@ func GetFileSystem(c common.Client, uri string) (*FileSystem, error) {
 
 // ListReferencedFileSystems gets the collection of FileSystem from
 // a provided reference.
-func ListReferencedFileSystems(c common.Client, link string) ([]*FileSystem, error) {
+func ListReferencedFileSystems(ctx context.Context, c common.Client, link string) ([]*FileSystem, error) {
 	var result []*FileSystem
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, filesystemLink := range links.ItemLinks {
-		filesystem, err := GetFileSystem(c, filesystemLink)
+		filesystem, err := GetFileSystem(ctx, c, filesystemLink)
 		if err != nil {
 			return result, err
 		}
@@ -298,24 +299,24 @@ func ListReferencedFileSystems(c common.Client, link string) ([]*FileSystem, err
 }
 
 // ExportedShares gets the exported file shares for this file system.
-func (filesystem *FileSystem) ExportedShares() ([]*FileShare, error) {
-	return ListReferencedFileShares(filesystem.Client, filesystem.exportedShares)
+func (filesystem *FileSystem) ExportedShares(ctx context.Context) ([]*FileShare, error) {
+	return ListReferencedFileShares(ctx, filesystem.Client, filesystem.exportedShares)
 }
 
 // ClassOfService gets the filesystem's class of service.
-func (filesystem *FileSystem) ClassOfService() (*ClassOfService, error) {
+func (filesystem *FileSystem) ClassOfService(ctx context.Context) (*ClassOfService, error) {
 	var result *ClassOfService
 	if filesystem.classOfService == "" {
 		return result, nil
 	}
-	return GetClassOfService(filesystem.Client, filesystem.classOfService)
+	return GetClassOfService(ctx, filesystem.Client, filesystem.classOfService)
 }
 
 // SpareResourceSets gets the spare resource sets used for this filesystem.
-func (filesystem *FileSystem) SpareResourceSets() ([]*SpareResourceSet, error) {
+func (filesystem *FileSystem) SpareResourceSets(ctx context.Context) ([]*SpareResourceSet, error) {
 	var result []*SpareResourceSet
 	for _, rsLink := range filesystem.spareResourceSets {
-		rs, err := GetSpareResourceSet(filesystem.Client, rsLink)
+		rs, err := GetSpareResourceSet(ctx, filesystem.Client, rsLink)
 		if err != nil {
 			return result, err
 		}

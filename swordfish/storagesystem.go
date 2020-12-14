@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -17,8 +18,8 @@ type StorageSystem struct {
 }
 
 // GetStorageSystem will get a StorageSystem instance from the Swordfish service.
-func GetStorageSystem(c common.Client, uri string) (*StorageSystem, error) {
-	resp, err := c.Get(uri)
+func GetStorageSystem(ctx context.Context, c common.Client, uri string) (*StorageSystem, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -35,15 +36,15 @@ func GetStorageSystem(c common.Client, uri string) (*StorageSystem, error) {
 }
 
 // ListReferencedStorageSystems gets the collection of StorageSystems.
-func ListReferencedStorageSystems(c common.Client, link string) ([]*StorageSystem, error) {
+func ListReferencedStorageSystems(ctx context.Context, c common.Client, link string) ([]*StorageSystem, error) {
 	var result []*StorageSystem
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, storageSystemLink := range links.ItemLinks {
-		storageSystem, err := GetStorageSystem(c, storageSystemLink)
+		storageSystem, err := GetStorageSystem(ctx, c, storageSystemLink)
 		if err != nil {
 			return result, err
 		}

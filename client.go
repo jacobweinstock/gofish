@@ -6,6 +6,7 @@ package gofish
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
@@ -84,7 +85,7 @@ type ClientConfig struct {
 }
 
 // Connect creates a new client connection to a Redfish service.
-func Connect(config ClientConfig) (c *APIClient, err error) {
+func Connect(ctx context.Context, config ClientConfig) (c *APIClient, err error) {
 
 	if !strings.HasPrefix(config.Endpoint, "http") {
 		return c, fmt.Errorf("endpoint must starts with http or https")
@@ -118,7 +119,7 @@ func Connect(config ClientConfig) (c *APIClient, err error) {
 	}
 
 	// Authenticate with the service
-	service, err := ServiceRoot(client)
+	service, err := ServiceRoot(ctx, client)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +140,7 @@ func Connect(config ClientConfig) (c *APIClient, err error) {
 					BasicAuth: true,
 				}
 			} else {
-				auth, err = service.CreateSession(config.Username, config.Password)
+				auth, err = service.CreateSession(ctx, config.Username, config.Password)
 				if err != nil {
 					return nil, err
 				}
@@ -153,7 +154,7 @@ func Connect(config ClientConfig) (c *APIClient, err error) {
 }
 
 // ConnectDefault creates an unauthenticated connection to a Redfish service.
-func ConnectDefault(endpoint string) (c *APIClient, err error) {
+func ConnectDefault(ctx context.Context, endpoint string) (c *APIClient, err error) {
 	if !strings.HasPrefix(endpoint, "http") {
 		return c, fmt.Errorf("endpoint must starts with http or https")
 	}
@@ -162,7 +163,7 @@ func ConnectDefault(endpoint string) (c *APIClient, err error) {
 	client.HTTPClient = &http.Client{}
 
 	// Fetch the service root
-	service, err := ServiceRoot(client)
+	service, err := ServiceRoot(ctx, client)
 	if err != nil {
 		return nil, err
 	}
@@ -184,33 +185,33 @@ func (c *APIClient) GetSession() (*Session, error) {
 }
 
 // Get performs a GET request against the Redfish service.
-func (c *APIClient) Get(url string) (*http.Response, error) {
+func (c *APIClient) Get(ctx context.Context, url string) (*http.Response, error) {
 	relativePath := url
 	if relativePath == "" {
 		relativePath = common.DefaultServiceRoot
 	}
 
-	return c.runRequest(http.MethodGet, relativePath, nil)
+	return c.runRequest(ctx, http.MethodGet, relativePath, nil)
 }
 
 // Post performs a Post request against the Redfish service.
-func (c *APIClient) Post(url string, payload interface{}) (*http.Response, error) {
-	return c.runRequest(http.MethodPost, url, payload)
+func (c *APIClient) Post(ctx context.Context, url string, payload interface{}) (*http.Response, error) {
+	return c.runRequest(ctx, http.MethodPost, url, payload)
 }
 
 // Put performs a Put request against the Redfish service.
-func (c *APIClient) Put(url string, payload interface{}) (*http.Response, error) {
-	return c.runRequest(http.MethodPut, url, payload)
+func (c *APIClient) Put(ctx context.Context, url string, payload interface{}) (*http.Response, error) {
+	return c.runRequest(ctx, http.MethodPut, url, payload)
 }
 
 // Patch performs a Patch request against the Redfish service.
-func (c *APIClient) Patch(url string, payload interface{}) (*http.Response, error) {
-	return c.runRequest(http.MethodPatch, url, payload)
+func (c *APIClient) Patch(ctx context.Context, url string, payload interface{}) (*http.Response, error) {
+	return c.runRequest(ctx, http.MethodPatch, url, payload)
 }
 
 // Delete performs a Delete request against the Redfish service.
-func (c *APIClient) Delete(url string) (*http.Response, error) {
-	resp, err := c.runRequest(http.MethodDelete, url, nil)
+func (c *APIClient) Delete(ctx context.Context, url string) (*http.Response, error) {
+	resp, err := c.runRequest(ctx, http.MethodDelete, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +222,7 @@ func (c *APIClient) Delete(url string) (*http.Response, error) {
 }
 
 // runRequest actually performs the REST calls.
-func (c *APIClient) runRequest(method string, url string, payload interface{}) (*http.Response, error) {
+func (c *APIClient) runRequest(ctx context.Context, method string, url string, payload interface{}) (*http.Response, error) {
 	if url == "" {
 		return nil, fmt.Errorf("unable to execute request, no target provided")
 	}
@@ -277,7 +278,7 @@ func (c *APIClient) runRequest(method string, url string, payload interface{}) (
 		}
 	}
 
-	resp, err := c.HTTPClient.Do(req)
+	resp, err := c.HTTPClient.Do(req.WithContext(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -315,8 +316,8 @@ func (c *APIClient) runRequest(method string, url string, payload interface{}) (
 
 // Logout will delete any active session. Useful to defer logout when creating
 // a new connection.
-func (c *APIClient) Logout() {
+func (c *APIClient) Logout(ctx context.Context) {
 	if c.Service != nil && c.auth != nil {
-		_ = c.Service.DeleteSession(c.auth.Session)
+		_ = c.Service.DeleteSession(ctx, c.auth.Session)
 	}
 }

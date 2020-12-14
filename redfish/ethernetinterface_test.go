@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -121,7 +122,7 @@ func TestEthernetInterfaceUpdate(t *testing.T) {
 	result.MACAddress = "de:ad:de:ad:de:ad"
 	result.MTUSize = 9216
 	result.SpeedMbps = 1000
-	err = result.Update()
+	err = result.Update(context.Background())
 
 	if err != nil {
 		t.Errorf("Error making Update call: %s", err)

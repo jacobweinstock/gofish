@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -68,8 +69,8 @@ func (networkinterface *NetworkInterface) UnmarshalJSON(b []byte) error {
 }
 
 // GetNetworkInterface will get a NetworkInterface instance from the service.
-func GetNetworkInterface(c common.Client, uri string) (*NetworkInterface, error) {
-	resp, err := c.Get(uri)
+func GetNetworkInterface(ctx context.Context, c common.Client, uri string) (*NetworkInterface, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -87,19 +88,19 @@ func GetNetworkInterface(c common.Client, uri string) (*NetworkInterface, error)
 
 // ListReferencedNetworkInterfaces gets the collection of NetworkInterface from
 // a provided reference.
-func ListReferencedNetworkInterfaces(c common.Client, link string) ([]*NetworkInterface, error) {
+func ListReferencedNetworkInterfaces(ctx context.Context, c common.Client, link string) ([]*NetworkInterface, error) {
 	var result []*NetworkInterface
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, networkinterfaceLink := range links.ItemLinks {
-		networkinterface, err := GetNetworkInterface(c, networkinterfaceLink)
+		networkinterface, err := GetNetworkInterface(ctx, c, networkinterfaceLink)
 		if err != nil {
 			return result, err
 		}
@@ -110,22 +111,22 @@ func ListReferencedNetworkInterfaces(c common.Client, link string) ([]*NetworkIn
 }
 
 // NetworkAdapter gets the NetworkAdapter for this interface.
-func (networkinterface *NetworkInterface) NetworkAdapter() (*NetworkAdapter, error) {
+func (networkinterface *NetworkInterface) NetworkAdapter(ctx context.Context) (*NetworkAdapter, error) {
 	if networkinterface.networkAdapter == "" {
 		return nil, nil
 	}
 
-	return GetNetworkAdapter(networkinterface.Client, networkinterface.networkAdapter)
+	return GetNetworkAdapter(ctx, networkinterface.Client, networkinterface.networkAdapter)
 }
 
 // NetworkDeviceFunctions gets the collection of NetworkDeviceFunctions of this network interface
-func (networkinterface *NetworkInterface) NetworkDeviceFunctions() ([]*NetworkDeviceFunction, error) {
+func (networkinterface *NetworkInterface) NetworkDeviceFunctions(ctx context.Context) ([]*NetworkDeviceFunction, error) {
 	return ListReferencedNetworkDeviceFunctions(
-		networkinterface.Client, networkinterface.networkDeviceFunctions)
+		ctx, networkinterface.Client, networkinterface.networkDeviceFunctions)
 }
 
 // NetworkPorts gets the collection of NetworkPorts of this network interface
-func (networkinterface *NetworkInterface) NetworkPorts() ([]*NetworkPort, error) {
+func (networkinterface *NetworkInterface) NetworkPorts(ctx context.Context) ([]*NetworkPort, error) {
 	return ListReferencedNetworkPorts(
-		networkinterface.Client, networkinterface.networkPorts)
+		ctx, networkinterface.Client, networkinterface.networkPorts)
 }

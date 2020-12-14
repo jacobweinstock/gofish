@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -200,8 +201,8 @@ type DataSecurityLoSCapabilities struct {
 // }
 
 // GetDataSecurityLoSCapabilities will get a DataSecurityLoSCapabilities instance from the service.
-func GetDataSecurityLoSCapabilities(c common.Client, uri string) (*DataSecurityLoSCapabilities, error) {
-	resp, err := c.Get(uri)
+func GetDataSecurityLoSCapabilities(ctx context.Context, c common.Client, uri string) (*DataSecurityLoSCapabilities, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -219,19 +220,19 @@ func GetDataSecurityLoSCapabilities(c common.Client, uri string) (*DataSecurityL
 
 // ListReferencedDataSecurityLoSCapabilities gets the collection of DataSecurityLoSCapabilities from
 // a provided reference.
-func ListReferencedDataSecurityLoSCapabilities(c common.Client, link string) ([]*DataSecurityLoSCapabilities, error) {
+func ListReferencedDataSecurityLoSCapabilities(ctx context.Context, c common.Client, link string) ([]*DataSecurityLoSCapabilities, error) {
 	var result []*DataSecurityLoSCapabilities
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, datasecurityloscapabilitiesLink := range links.ItemLinks {
-		datasecurityloscapabilities, err := GetDataSecurityLoSCapabilities(c, datasecurityloscapabilitiesLink)
+		datasecurityloscapabilities, err := GetDataSecurityLoSCapabilities(ctx, c, datasecurityloscapabilitiesLink)
 		if err != nil {
 			return result, err
 		}

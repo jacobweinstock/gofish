@@ -5,11 +5,13 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
-	"github.com/stmcginnis/gofish/common"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/stmcginnis/gofish/common"
 )
 
 var oemLinksBody = `
@@ -129,7 +131,7 @@ var managerBody = `{
 			},
 			"Oem":
 ` + oemLinksBody +
-`		},
+	`		},
 		"Actions": {
 			"#Manager.Reset": {
 				"target": "/redfish/v1/Managers/BMC-1/Actions/Manager.Reset",
@@ -141,7 +143,7 @@ var managerBody = `{
 		},
 		"Oem":
 ` + oemDataBody +
-`	}`
+	`	}`
 
 // TestManager tests the parsing of Manager objects.
 func TestManager(t *testing.T) {
@@ -214,7 +216,7 @@ func TestManagerUpdate(t *testing.T) {
 
 	result.AutoDSTEnabled = false
 	result.DateTimeLocalOffset = "+05:00"
-	err = result.Update()
+	err = result.Update(context.Background())
 
 	if err != nil {
 		t.Errorf("Error making Update call: %s", err)

@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -131,7 +132,7 @@ func TestStorageGroupUpdate(t *testing.T) {
 	result.AccessState = NonOptimizedAccessState
 	result.AuthenticationMethod = NoneAuthenticationMethod
 	result.VolumesAreExposed = true
-	err = result.Update()
+	err = result.Update(context.Background())
 
 	if err != nil {
 		t.Errorf("Error making Update call: %s", err)

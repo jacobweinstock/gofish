@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -107,7 +108,7 @@ func (secureboot *SecureBoot) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (secureboot *SecureBoot) Update() error {
+func (secureboot *SecureBoot) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -121,12 +122,12 @@ func (secureboot *SecureBoot) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(secureboot).Elem()
 
-	return secureboot.Entity.Update(originalElement, currentElement, readWriteFields)
+	return secureboot.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetSecureBoot will get a SecureBoot instance from the service.
-func GetSecureBoot(c common.Client, uri string) (*SecureBoot, error) {
-	resp, err := c.Get(uri)
+func GetSecureBoot(ctx context.Context, c common.Client, uri string) (*SecureBoot, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -144,19 +145,19 @@ func GetSecureBoot(c common.Client, uri string) (*SecureBoot, error) {
 
 // ListReferencedSecureBoots gets the collection of SecureBoot from
 // a provided reference.
-func ListReferencedSecureBoots(c common.Client, link string) ([]*SecureBoot, error) {
+func ListReferencedSecureBoots(ctx context.Context, c common.Client, link string) ([]*SecureBoot, error) {
 	var result []*SecureBoot
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, securebootLink := range links.ItemLinks {
-		secureboot, err := GetSecureBoot(c, securebootLink)
+		secureboot, err := GetSecureBoot(ctx, c, securebootLink)
 		if err != nil {
 			return result, err
 		}
@@ -171,12 +172,12 @@ func ListReferencedSecureBoots(c common.Client, link string) ([]*SecureBoot, err
 // their default values. The DeleteAllKeys value shall delete the content of the
 // UEFI Secure Boot key databases. The DeletePK value shall delete the content
 // of the PK Secure boot key.
-func (secureboot *SecureBoot) ResetKeys(resetType ResetKeysType) error {
+func (secureboot *SecureBoot) ResetKeys(ctx context.Context, resetType ResetKeysType) error {
 	type temp struct {
 		ResetKeysType ResetKeysType
 	}
 	t := temp{ResetKeysType: resetType}
 
-	_, err := secureboot.Client.Post(secureboot.resetKeysTarget, t)
+	_, err := secureboot.Client.Post(ctx, secureboot.resetKeysTarget, t)
 	return err
 }

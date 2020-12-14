@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -355,7 +356,7 @@ func (manager *Manager) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (manager *Manager) Update() error {
+func (manager *Manager) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -371,12 +372,12 @@ func (manager *Manager) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(manager).Elem()
 
-	return manager.Entity.Update(originalElement, currentElement, readWriteFields)
+	return manager.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetManager will get a Manager instance from the Swordfish service.
-func GetManager(c common.Client, uri string) (*Manager, error) {
-	resp, err := c.Get(uri)
+func GetManager(ctx context.Context, c common.Client, uri string) (*Manager, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -393,15 +394,15 @@ func GetManager(c common.Client, uri string) (*Manager, error) {
 }
 
 // ListReferencedManagers gets the collection of Managers
-func ListReferencedManagers(c common.Client, link string) ([]*Manager, error) {
+func ListReferencedManagers(ctx context.Context, c common.Client, link string) ([]*Manager, error) {
 	var result []*Manager
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, managerLink := range links.ItemLinks {
-		manager, err := GetManager(c, managerLink)
+		manager, err := GetManager(ctx, c, managerLink)
 		if err != nil {
 			return result, err
 		}
@@ -412,7 +413,7 @@ func ListReferencedManagers(c common.Client, link string) ([]*Manager, error) {
 }
 
 // Reset shall perform a reset of the manager.
-func (manager *Manager) Reset(resetType ResetType) error {
+func (manager *Manager) Reset(ctx context.Context, resetType ResetType) error {
 	if len(manager.SupportedResetTypes) == 0 {
 		// reset directly without reset type. HPE server has the behavior
 		type temp struct {
@@ -422,7 +423,7 @@ func (manager *Manager) Reset(resetType ResetType) error {
 			Action: "Manager.Reset",
 		}
 
-		_, err := manager.Client.Post(manager.resetTarget, t)
+		_, err := manager.Client.Post(ctx, manager.resetTarget, t)
 		return err
 	}
 	// Make sure the requested reset type is supported by the manager.
@@ -446,21 +447,21 @@ func (manager *Manager) Reset(resetType ResetType) error {
 		ResetType: resetType,
 	}
 
-	_, err := manager.Client.Post(manager.resetTarget, t)
+	_, err := manager.Client.Post(ctx, manager.resetTarget, t)
 	return err
 }
 
 // EthernetInterfaces get this system's ethernet interfaces.
-func (manager *Manager) EthernetInterfaces() ([]*EthernetInterface, error) {
-	return ListReferencedEthernetInterfaces(manager.Client, manager.ethernetInterfaces)
+func (manager *Manager) EthernetInterfaces(ctx context.Context) ([]*EthernetInterface, error) {
+	return ListReferencedEthernetInterfaces(ctx, manager.Client, manager.ethernetInterfaces)
 }
 
 // LogServices get this manager's log services on this system.
-func (manager *Manager) LogServices() ([]*LogService, error) {
-	return ListReferencedLogServices(manager.Client, manager.logServices)
+func (manager *Manager) LogServices(ctx context.Context) ([]*LogService, error) {
+	return ListReferencedLogServices(ctx, manager.Client, manager.logServices)
 }
 
 // VirtualMedia gets the virtual media associated with this manager.
-func (manager *Manager) VirtualMedia() ([]*VirtualMedia, error) {
-	return ListReferencedVirtualMedias(manager.Client, manager.virtualMedia)
+func (manager *Manager) VirtualMedia(ctx context.Context) ([]*VirtualMedia, error) {
+	return ListReferencedVirtualMedias(ctx, manager.Client, manager.virtualMedia)
 }

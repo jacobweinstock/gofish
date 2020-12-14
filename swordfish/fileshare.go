@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -134,7 +135,7 @@ func (fileshare *FileShare) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (fileshare *FileShare) Update() error {
+func (fileshare *FileShare) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -151,12 +152,12 @@ func (fileshare *FileShare) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(fileshare).Elem()
 
-	return fileshare.Entity.Update(originalElement, currentElement, readWriteFields)
+	return fileshare.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetFileShare will get a FileShare instance from the service.
-func GetFileShare(c common.Client, uri string) (*FileShare, error) {
-	resp, err := c.Get(uri)
+func GetFileShare(ctx context.Context, c common.Client, uri string) (*FileShare, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -174,19 +175,19 @@ func GetFileShare(c common.Client, uri string) (*FileShare, error) {
 
 // ListReferencedFileShares gets the collection of FileShare from a provided
 // reference.
-func ListReferencedFileShares(c common.Client, link string) ([]*FileShare, error) {
+func ListReferencedFileShares(ctx context.Context, c common.Client, link string) ([]*FileShare, error) {
 	var result []*FileShare
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, fileshareLink := range links.ItemLinks {
-		fileshare, err := GetFileShare(c, fileshareLink)
+		fileshare, err := GetFileShare(ctx, c, fileshareLink)
 		if err != nil {
 			return result, err
 		}
@@ -197,24 +198,24 @@ func ListReferencedFileShares(c common.Client, link string) ([]*FileShare, error
 }
 
 // ClassOfService gets the file share's class of service.
-func (fileshare *FileShare) ClassOfService() (*ClassOfService, error) {
+func (fileshare *FileShare) ClassOfService(ctx context.Context) (*ClassOfService, error) {
 	var result *ClassOfService
 	if fileshare.classOfService == "" {
 		return result, nil
 	}
-	return GetClassOfService(fileshare.Client, fileshare.classOfService)
+	return GetClassOfService(ctx, fileshare.Client, fileshare.classOfService)
 }
 
 // FileSystem gets the file share's associated file system.
-func (fileshare *FileShare) FileSystem() (*FileSystem, error) {
+func (fileshare *FileShare) FileSystem(ctx context.Context) (*FileSystem, error) {
 	var result *FileSystem
 	if fileshare.fileSystem == "" {
 		return result, nil
 	}
-	return GetFileSystem(fileshare.Client, fileshare.fileSystem)
+	return GetFileSystem(ctx, fileshare.Client, fileshare.fileSystem)
 }
 
 // EthernetInterfaces gets the EthernetInterfaces associated with this share.
-func (fileshare *FileShare) EthernetInterfaces() ([]*redfish.EthernetInterface, error) {
-	return redfish.ListReferencedEthernetInterfaces(fileshare.Client, fileshare.ethernetInterfaces)
+func (fileshare *FileShare) EthernetInterfaces(ctx context.Context) ([]*redfish.EthernetInterface, error) {
+	return redfish.ListReferencedEthernetInterfaces(ctx, fileshare.Client, fileshare.ethernetInterfaces)
 }

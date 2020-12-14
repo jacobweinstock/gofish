@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -190,7 +191,7 @@ func TestFileSystemUpdate(t *testing.T) {
 	result.CaseSensitive = false
 	result.ClusterSizeBytes = 1024
 	result.MaxFileNameLengthBytes = 1024
-	err = result.Update()
+	err = result.Update(context.Background())
 
 	if err != nil {
 		t.Errorf("Error making Update call: %s", err)

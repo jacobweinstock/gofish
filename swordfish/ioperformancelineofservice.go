@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -47,8 +48,8 @@ type IOPerformanceLineOfService struct {
 }
 
 // GetIOPerformanceLineOfService will get a IOPerformanceLineOfService instance from the service.
-func GetIOPerformanceLineOfService(c common.Client, uri string) (*IOPerformanceLineOfService, error) {
-	resp, err := c.Get(uri)
+func GetIOPerformanceLineOfService(ctx context.Context, c common.Client, uri string) (*IOPerformanceLineOfService, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -66,19 +67,19 @@ func GetIOPerformanceLineOfService(c common.Client, uri string) (*IOPerformanceL
 
 // ListReferencedIOPerformanceLineOfServices gets the collection of IOPerformanceLineOfService from
 // a provided reference.
-func ListReferencedIOPerformanceLineOfServices(c common.Client, link string) ([]*IOPerformanceLineOfService, error) {
+func ListReferencedIOPerformanceLineOfServices(ctx context.Context, c common.Client, link string) ([]*IOPerformanceLineOfService, error) {
 	var result []*IOPerformanceLineOfService
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, ioperformancelineofserviceLink := range links.ItemLinks {
-		ioperformancelineofservice, err := GetIOPerformanceLineOfService(c, ioperformancelineofserviceLink)
+		ioperformancelineofservice, err := GetIOPerformanceLineOfService(ctx, c, ioperformancelineofserviceLink)
 		if err != nil {
 			return result, err
 		}

@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -137,7 +138,7 @@ func TestIOPerformanceLoSCapabilitiesUpdate(t *testing.T) {
 	result.MaxSamplePeriod = "P3Y6M4DT12H30M0S"
 	result.MinSamplePeriod = "P0Y0M0DT0H0M5S"
 	result.MinSupportedIoOperationLatencyMicroseconds = 500
-	err = result.Update()
+	err = result.Update(context.Background())
 
 	if err != nil {
 		t.Errorf("Error making Update call: %s", err)

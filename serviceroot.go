@@ -5,6 +5,7 @@
 package gofish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -208,8 +209,8 @@ func (serviceroot *Service) UnmarshalJSON(b []byte) error {
 }
 
 // ServiceRoot will get a Service instance from the service.
-func ServiceRoot(c common.Client) (*Service, error) {
-	resp, err := c.Get(common.DefaultServiceRoot)
+func ServiceRoot(ctx context.Context, c common.Client) (*Service, error) {
+	resp, err := c.Get(ctx, common.DefaultServiceRoot)
 	if err != nil {
 		return nil, err
 	}
@@ -226,66 +227,66 @@ func ServiceRoot(c common.Client) (*Service, error) {
 }
 
 // Chassis gets the chassis instances managed by this service.
-func (serviceroot *Service) Chassis() ([]*redfish.Chassis, error) {
-	return redfish.ListReferencedChassis(serviceroot.Client, serviceroot.chassis)
+func (serviceroot *Service) Chassis(ctx context.Context) ([]*redfish.Chassis, error) {
+	return redfish.ListReferencedChassis(ctx, serviceroot.Client, serviceroot.chassis)
 }
 
 // Managers gets the manager instances of this service.
-func (serviceroot *Service) Managers() ([]*redfish.Manager, error) {
-	return redfish.ListReferencedManagers(serviceroot.Client, serviceroot.managers)
+func (serviceroot *Service) Managers(ctx context.Context) ([]*redfish.Manager, error) {
+	return redfish.ListReferencedManagers(ctx, serviceroot.Client, serviceroot.managers)
 }
 
 // StorageSystems gets the storage system instances managed by this service.
-func (serviceroot *Service) StorageSystems() ([]*swordfish.StorageSystem, error) {
-	return swordfish.ListReferencedStorageSystems(serviceroot.Client, serviceroot.storageSystems)
+func (serviceroot *Service) StorageSystems(ctx context.Context) ([]*swordfish.StorageSystem, error) {
+	return swordfish.ListReferencedStorageSystems(ctx, serviceroot.Client, serviceroot.storageSystems)
 }
 
 // StorageServices gets the Swordfish storage services
-func (serviceroot *Service) StorageServices() ([]*swordfish.StorageService, error) {
-	return swordfish.ListReferencedStorageServices(serviceroot.Client, serviceroot.storageServices)
+func (serviceroot *Service) StorageServices(ctx context.Context) ([]*swordfish.StorageService, error) {
+	return swordfish.ListReferencedStorageServices(ctx, serviceroot.Client, serviceroot.storageServices)
 }
 
 // Tasks gets the system's tasks
-func (serviceroot *Service) Tasks() ([]*redfish.Task, error) {
-	return redfish.ListReferencedTasks(serviceroot.Client, serviceroot.tasks)
+func (serviceroot *Service) Tasks(ctx context.Context) ([]*redfish.Task, error) {
+	return redfish.ListReferencedTasks(ctx, serviceroot.Client, serviceroot.tasks)
 }
 
 // CreateSession creates a new session and returns the token and id
-func (serviceroot *Service) CreateSession(username string, password string) (*redfish.AuthToken, error) {
-	return redfish.CreateSession(serviceroot.Client, serviceroot.sessions, username, password)
+func (serviceroot *Service) CreateSession(ctx context.Context, username string, password string) (*redfish.AuthToken, error) {
+	return redfish.CreateSession(ctx, serviceroot.Client, serviceroot.sessions, username, password)
 }
 
 // Sessions gets the system's active sessions
-func (serviceroot *Service) Sessions() ([]*redfish.Session, error) {
-	return redfish.ListReferencedSessions(serviceroot.Client, serviceroot.sessions)
+func (serviceroot *Service) Sessions(ctx context.Context) ([]*redfish.Session, error) {
+	return redfish.ListReferencedSessions(ctx, serviceroot.Client, serviceroot.sessions)
 }
 
 // DeleteSession logout the specified session
-func (serviceroot *Service) DeleteSession(url string) error {
-	return redfish.DeleteSession(serviceroot.Client, url)
+func (serviceroot *Service) DeleteSession(ctx context.Context, url string) error {
+	return redfish.DeleteSession(ctx, serviceroot.Client, url)
 }
 
 // AccountService gets the Redfish AccountService
-func (serviceroot *Service) AccountService() (*redfish.AccountService, error) {
-	return redfish.GetAccountService(serviceroot.Client, serviceroot.accountService)
+func (serviceroot *Service) AccountService(ctx context.Context) (*redfish.AccountService, error) {
+	return redfish.GetAccountService(ctx, serviceroot.Client, serviceroot.accountService)
 }
 
 // EventService gets the Redfish EventService
-func (serviceroot *Service) EventService() (*redfish.EventService, error) {
-	return redfish.GetEventService(serviceroot.Client, serviceroot.eventService)
+func (serviceroot *Service) EventService(ctx context.Context) (*redfish.EventService, error) {
+	return redfish.GetEventService(ctx, serviceroot.Client, serviceroot.eventService)
 }
 
 // Systems get the system instances from the service
-func (serviceroot *Service) Systems() ([]*redfish.ComputerSystem, error) {
-	return redfish.ListReferencedComputerSystems(serviceroot.Client, serviceroot.systems)
+func (serviceroot *Service) Systems(ctx context.Context) ([]*redfish.ComputerSystem, error) {
+	return redfish.ListReferencedComputerSystems(ctx, serviceroot.Client, serviceroot.systems)
 }
 
 // CompositionService gets the composition service instance
-func (serviceroot *Service) CompositionService() (*redfish.CompositionService, error) {
-	return redfish.GetCompositionService(serviceroot.Client, serviceroot.compositionService)
+func (serviceroot *Service) CompositionService(ctx context.Context) (*redfish.CompositionService, error) {
+	return redfish.GetCompositionService(ctx, serviceroot.Client, serviceroot.compositionService)
 }
 
 // UpdateService gets the update service instance
-func (serviceroot *Service) UpdateService() (*redfish.UpdateService, error) {
-	return redfish.GetUpdateService(serviceroot.Client, serviceroot.updateService)
+func (serviceroot *Service) UpdateService(ctx context.Context) (*redfish.UpdateService, error) {
+	return redfish.GetUpdateService(ctx, serviceroot.Client, serviceroot.updateService)
 }

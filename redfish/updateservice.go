@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -66,8 +67,8 @@ func (updateService *UpdateService) UnmarshalJSON(b []byte) error {
 }
 
 // GetUpdateService will get a UpdateService instance from the service.
-func GetUpdateService(c common.Client, uri string) (*UpdateService, error) {
-	resp, err := c.Get(uri)
+func GetUpdateService(ctx context.Context, c common.Client, uri string) (*UpdateService, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}

@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -104,7 +105,7 @@ func (datastorageloscapabilities *DataStorageLoSCapabilities) UnmarshalJSON(b []
 }
 
 // Update commits updates to this object's properties to the running system.
-func (datastorageloscapabilities *DataStorageLoSCapabilities) Update() error {
+func (datastorageloscapabilities *DataStorageLoSCapabilities) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -123,12 +124,12 @@ func (datastorageloscapabilities *DataStorageLoSCapabilities) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(datastorageloscapabilities).Elem()
 
-	return datastorageloscapabilities.Entity.Update(originalElement, currentElement, readWriteFields)
+	return datastorageloscapabilities.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetDataStorageLoSCapabilities will get a DataStorageLoSCapabilities instance from the service.
-func GetDataStorageLoSCapabilities(c common.Client, uri string) (*DataStorageLoSCapabilities, error) {
-	resp, err := c.Get(uri)
+func GetDataStorageLoSCapabilities(ctx context.Context, c common.Client, uri string) (*DataStorageLoSCapabilities, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -146,19 +147,19 @@ func GetDataStorageLoSCapabilities(c common.Client, uri string) (*DataStorageLoS
 
 // ListReferencedDataStorageLoSCapabilities gets the collection of DataStorageLoSCapabilities from
 // a provided reference.
-func ListReferencedDataStorageLoSCapabilities(c common.Client, link string) ([]*DataStorageLoSCapabilities, error) {
+func ListReferencedDataStorageLoSCapabilities(ctx context.Context, c common.Client, link string) ([]*DataStorageLoSCapabilities, error) {
 	var result []*DataStorageLoSCapabilities
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, datastorageloscapabilitiesLink := range links.ItemLinks {
-		datastorageloscapabilities, err := GetDataStorageLoSCapabilities(c, datastorageloscapabilitiesLink)
+		datastorageloscapabilities, err := GetDataStorageLoSCapabilities(ctx, c, datastorageloscapabilitiesLink)
 		if err != nil {
 			return result, err
 		}

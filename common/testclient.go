@@ -5,6 +5,7 @@
 package common
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -115,7 +116,7 @@ func (c *TestClient) recordCall(action string, url string, payload interface{}) 
 }
 
 // Get performs a GET request against the Redfish service.
-func (c *TestClient) Get(url string) (*http.Response, error) {
+func (c *TestClient) Get(ctx context.Context, url string) (*http.Response, error) {
 	c.recordCall(http.MethodGet, url, nil)
 	customReturnForAction := c.getCustomReturnForAction(http.MethodGet)
 	if customReturnForAction == nil {
@@ -125,7 +126,7 @@ func (c *TestClient) Get(url string) (*http.Response, error) {
 }
 
 // Post performs a Post request against the Redfish service.
-func (c *TestClient) Post(url string, payload interface{}) (*http.Response, error) {
+func (c *TestClient) Post(ctx context.Context, url string, payload interface{}) (*http.Response, error) {
 	c.recordCall(http.MethodPost, url, payload)
 	customReturnForAction := c.getCustomReturnForAction(http.MethodPost)
 	if customReturnForAction == nil {
@@ -135,7 +136,7 @@ func (c *TestClient) Post(url string, payload interface{}) (*http.Response, erro
 }
 
 // Put performs a Put request against the Redfish service.
-func (c *TestClient) Put(url string, payload interface{}) (*http.Response, error) {
+func (c *TestClient) Put(ctx context.Context, url string, payload interface{}) (*http.Response, error) {
 	c.recordCall(http.MethodPut, url, payload)
 	customReturnForAction := c.getCustomReturnForAction(http.MethodPut)
 	if customReturnForAction == nil {
@@ -145,7 +146,7 @@ func (c *TestClient) Put(url string, payload interface{}) (*http.Response, error
 }
 
 // Patch performs a Patch request against the Redfish service.
-func (c *TestClient) Patch(url string, payload interface{}) (*http.Response, error) {
+func (c *TestClient) Patch(ctx context.Context, url string, payload interface{}) (*http.Response, error) {
 	c.recordCall(http.MethodPatch, url, payload)
 	customReturnForAction := c.getCustomReturnForAction(http.MethodPatch)
 	if customReturnForAction == nil {
@@ -155,7 +156,7 @@ func (c *TestClient) Patch(url string, payload interface{}) (*http.Response, err
 }
 
 // Delete performs a Delete request against the Redfish service.
-func (c *TestClient) Delete(url string) (*http.Response, error) {
+func (c *TestClient) Delete(ctx context.Context, url string) (*http.Response, error) {
 	c.recordCall(http.MethodDelete, url, nil)
 	customReturnForAction := c.getCustomReturnForAction(http.MethodDelete)
 	if customReturnForAction == nil {

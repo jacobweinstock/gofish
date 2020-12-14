@@ -5,6 +5,7 @@
 package common
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -16,11 +17,11 @@ const DefaultServiceRoot = "/redfish/v1/"
 
 // Client is a connection to a Redfish service.
 type Client interface {
-	Get(url string) (*http.Response, error)
-	Post(url string, payload interface{}) (*http.Response, error)
-	Patch(url string, payload interface{}) (*http.Response, error)
-	Put(url string, payload interface{}) (*http.Response, error)
-	Delete(url string) (*http.Response, error)
+	Get(ctx context.Context, url string) (*http.Response, error)
+	Post(ctx context.Context, url string, payload interface{}) (*http.Response, error)
+	Patch(ctx context.Context, url string, payload interface{}) (*http.Response, error)
+	Put(ctx context.Context, url string, payload interface{}) (*http.Response, error)
+	Delete(ctx context.Context, url string) (*http.Response, error)
 }
 
 // Entity provides the common basis for all Redfish and Swordfish objects.
@@ -42,7 +43,7 @@ func (e *Entity) SetClient(c Client) {
 }
 
 // Update commits changes to an entity.
-func (e *Entity) Update(originalEntity reflect.Value, currentEntity reflect.Value,
+func (e *Entity) Update(ctx context.Context, originalEntity reflect.Value, currentEntity reflect.Value,
 	allowedUpdates []string) error {
 
 	payload := make(map[string]interface{})
@@ -93,7 +94,7 @@ func (e *Entity) Update(originalEntity reflect.Value, currentEntity reflect.Valu
 	// If there are any allowed updates, try to send updates to the system and
 	// return the result.
 	if len(payload) > 0 {
-		_, err := e.Client.Patch(e.ODataID, payload)
+		_, err := e.Client.Patch(ctx, e.ODataID, payload)
 		if err != nil {
 			return err
 		}
@@ -712,7 +713,7 @@ func ConstructError(statusCode int, b []byte) error {
 	var err struct {
 		Error *Error
 	}
-	if e := json.Unmarshal(b, &err); e != nil || err.Error == nil{
+	if e := json.Unmarshal(b, &err); e != nil || err.Error == nil {
 		// return normal error
 		return fmt.Errorf("%d: %s", statusCode, string(b))
 	}

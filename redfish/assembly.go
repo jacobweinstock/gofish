@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -52,7 +53,7 @@ func (assembly *Assembly) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (assembly *Assembly) Update() error {
+func (assembly *Assembly) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -66,12 +67,12 @@ func (assembly *Assembly) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(assembly).Elem()
 
-	return assembly.Entity.Update(originalElement, currentElement, readWriteFields)
+	return assembly.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetAssembly will get a Assembly instance from the service.
-func GetAssembly(c common.Client, uri string) (*Assembly, error) {
-	resp, err := c.Get(uri)
+func GetAssembly(ctx context.Context, c common.Client, uri string) (*Assembly, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -89,19 +90,19 @@ func GetAssembly(c common.Client, uri string) (*Assembly, error) {
 
 // ListReferencedAssemblys gets the collection of Assembly from
 // a provided reference.
-func ListReferencedAssemblys(c common.Client, link string) ([]*Assembly, error) {
+func ListReferencedAssemblys(ctx context.Context, c common.Client, link string) ([]*Assembly, error) {
 	var result []*Assembly
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, assemblyLink := range links.ItemLinks {
-		assembly, err := GetAssembly(c, assemblyLink)
+		assembly, err := GetAssembly(ctx, c, assemblyLink)
 		if err != nil {
 			return result, err
 		}

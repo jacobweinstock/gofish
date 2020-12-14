@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -128,7 +129,7 @@ func (pciedevice *PCIeDevice) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (pciedevice *PCIeDevice) Update() error {
+func (pciedevice *PCIeDevice) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -142,12 +143,12 @@ func (pciedevice *PCIeDevice) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(pciedevice).Elem()
 
-	return pciedevice.Entity.Update(originalElement, currentElement, readWriteFields)
+	return pciedevice.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetPCIeDevice will get a PCIeDevice instance from the service.
-func GetPCIeDevice(c common.Client, uri string) (*PCIeDevice, error) {
-	resp, err := c.Get(uri)
+func GetPCIeDevice(ctx context.Context, c common.Client, uri string) (*PCIeDevice, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -165,19 +166,19 @@ func GetPCIeDevice(c common.Client, uri string) (*PCIeDevice, error) {
 
 // ListReferencedPCIeDevices gets the collection of PCIeDevice from
 // a provided reference.
-func ListReferencedPCIeDevices(c common.Client, link string) ([]*PCIeDevice, error) {
+func ListReferencedPCIeDevices(ctx context.Context, c common.Client, link string) ([]*PCIeDevice, error) {
 	var result []*PCIeDevice
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, pciedeviceLink := range links.ItemLinks {
-		pciedevice, err := GetPCIeDevice(c, pciedeviceLink)
+		pciedevice, err := GetPCIeDevice(ctx, c, pciedeviceLink)
 		if err != nil {
 			return result, err
 		}
@@ -202,18 +203,18 @@ type PCIeInterface struct {
 }
 
 // Assembly gets the assembly for this device.
-func (pciedevice *PCIeDevice) Assembly() (*Assembly, error) {
+func (pciedevice *PCIeDevice) Assembly(ctx context.Context) (*Assembly, error) {
 	if pciedevice.assembly == "" {
 		return nil, nil
 	}
-	return GetAssembly(pciedevice.Client, pciedevice.assembly)
+	return GetAssembly(ctx, pciedevice.Client, pciedevice.assembly)
 }
 
 // Chassis gets the chassis in which the PCIe device is contained.
-func (pciedevice *PCIeDevice) Chassis() ([]*Chassis, error) {
+func (pciedevice *PCIeDevice) Chassis(ctx context.Context) ([]*Chassis, error) {
 	var result []*Chassis
 	for _, chassisLink := range pciedevice.chassis {
-		chassis, err := GetChassis(pciedevice.Client, chassisLink)
+		chassis, err := GetChassis(ctx, pciedevice.Client, chassisLink)
 		if err != nil {
 			return result, err
 		}
@@ -223,10 +224,10 @@ func (pciedevice *PCIeDevice) Chassis() ([]*Chassis, error) {
 }
 
 // PCIeFunctions get the PCIe functions that this device exposes.
-func (pciedevice *PCIeDevice) PCIeFunctions() ([]*PCIeDevice, error) {
+func (pciedevice *PCIeDevice) PCIeFunctions(ctx context.Context) ([]*PCIeDevice, error) {
 	var result []*PCIeDevice
 	for _, funcLink := range pciedevice.pcieFunctions {
-		pciFunction, err := GetPCIeDevice(pciedevice.Client, funcLink)
+		pciFunction, err := GetPCIeDevice(ctx, pciedevice.Client, funcLink)
 		if err != nil {
 			return result, err
 		}

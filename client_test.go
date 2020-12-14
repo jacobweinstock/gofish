@@ -5,6 +5,7 @@
 package gofish
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -51,7 +52,7 @@ func TestError400(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	_, err := Connect(ClientConfig{Endpoint: ts.URL, HTTPClient: ts.Client()})
+	_, err := Connect(context.Background(), ClientConfig{Endpoint: ts.URL, HTTPClient: ts.Client()})
 	if err == nil {
 		t.Error("Update call should fail")
 	}
@@ -76,7 +77,7 @@ func TestErrorNon400(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	_, err := Connect(ClientConfig{Endpoint: ts.URL, HTTPClient: ts.Client()})
+	_, err := Connect(context.Background(), ClientConfig{Endpoint: ts.URL, HTTPClient: ts.Client()})
 	if err == nil {
 		t.Error("Update call should fail")
 	}

@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -161,8 +162,8 @@ func (storageservice *StorageService) UnmarshalJSON(b []byte) error {
 }
 
 // GetStorageService will get a StorageService instance from the service.
-func GetStorageService(c common.Client, uri string) (*StorageService, error) {
-	resp, err := c.Get(uri)
+func GetStorageService(ctx context.Context, c common.Client, uri string) (*StorageService, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -180,15 +181,15 @@ func GetStorageService(c common.Client, uri string) (*StorageService, error) {
 
 // ListReferencedStorageServices gets the collection of StorageService from
 // a provided reference.
-func ListReferencedStorageServices(c common.Client, link string) ([]*StorageService, error) {
+func ListReferencedStorageServices(ctx context.Context, c common.Client, link string) ([]*StorageService, error) {
 	var result []*StorageService
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, storageserviceLink := range links.ItemLinks {
-		storageservice, err := GetStorageService(c, storageserviceLink)
+		storageservice, err := GetStorageService(ctx, c, storageserviceLink)
 		if err != nil {
 			return result, err
 		}
@@ -199,88 +200,88 @@ func ListReferencedStorageServices(c common.Client, link string) ([]*StorageServ
 }
 
 // ClassesOfService gets the storage service's classes of service.
-func (storageservice *StorageService) ClassesOfService() ([]*ClassOfService, error) {
-	return ListReferencedClassOfServices(storageservice.Client, storageservice.classesOfService)
+func (storageservice *StorageService) ClassesOfService(ctx context.Context) ([]*ClassOfService, error) {
+	return ListReferencedClassOfServices(ctx, storageservice.Client, storageservice.classesOfService)
 }
 
 // DataProtectionLoSCapabilities gets the storage service's data protection
 // capabilities.
-func (storageservice *StorageService) DataProtectionLoSCapabilities() (*DataProtectionLoSCapabilities, error) {
+func (storageservice *StorageService) DataProtectionLoSCapabilities(ctx context.Context) (*DataProtectionLoSCapabilities, error) {
 	if storageservice.dataProtectionLoSCapabilities == "" {
 		return nil, nil
 	}
-	return GetDataProtectionLoSCapabilities(storageservice.Client, storageservice.dataProtectionLoSCapabilities)
+	return GetDataProtectionLoSCapabilities(ctx, storageservice.Client, storageservice.dataProtectionLoSCapabilities)
 }
 
 // DataSecurityLoSCapabilities gets the storage service's data security
 // capabilities.
-func (storageservice *StorageService) DataSecurityLoSCapabilities() (*DataSecurityLoSCapabilities, error) {
+func (storageservice *StorageService) DataSecurityLoSCapabilities(ctx context.Context) (*DataSecurityLoSCapabilities, error) {
 	if storageservice.dataSecurityLoSCapabilities == "" {
 		return nil, nil
 	}
-	return GetDataSecurityLoSCapabilities(storageservice.Client, storageservice.dataSecurityLoSCapabilities)
+	return GetDataSecurityLoSCapabilities(ctx, storageservice.Client, storageservice.dataSecurityLoSCapabilities)
 
 }
 
 // DataStorageLoSCapabilities references the data storage capabilities of this service.
-func (storageservice *StorageService) DataStorageLoSCapabilities() (*DataStorageLoSCapabilities, error) {
+func (storageservice *StorageService) DataStorageLoSCapabilities(ctx context.Context) (*DataStorageLoSCapabilities, error) {
 	if storageservice.dataStorageLoSCapabilities == "" {
 		return nil, nil
 	}
-	return GetDataStorageLoSCapabilities(storageservice.Client, storageservice.dataStorageLoSCapabilities)
+	return GetDataStorageLoSCapabilities(ctx, storageservice.Client, storageservice.dataStorageLoSCapabilities)
 
 }
 
 // DefaultClassOfService references the default class of service for entities
 // allocated by this storage service.
-func (storageservice *StorageService) DefaultClassOfService() (*ClassOfService, error) {
+func (storageservice *StorageService) DefaultClassOfService(ctx context.Context) (*ClassOfService, error) {
 	if storageservice.defaultClassOfService == "" {
 		return nil, nil
 	}
-	return GetClassOfService(storageservice.Client, storageservice.defaultClassOfService)
+	return GetClassOfService(ctx, storageservice.Client, storageservice.defaultClassOfService)
 }
 
 // Drives gets the storage service's drives.
-func (storageservice *StorageService) Drives() ([]*redfish.Drive, error) {
-	return redfish.ListReferencedDrives(storageservice.Client, storageservice.drives)
+func (storageservice *StorageService) Drives(ctx context.Context) ([]*redfish.Drive, error) {
+	return redfish.ListReferencedDrives(ctx, storageservice.Client, storageservice.drives)
 }
 
 // EndpointGroups gets the storage service's endpoint groups.
-func (storageservice *StorageService) EndpointGroups() ([]*EndpointGroup, error) {
-	return ListReferencedEndpointGroups(storageservice.Client, storageservice.endpointGroups)
+func (storageservice *StorageService) EndpointGroups(ctx context.Context) ([]*EndpointGroup, error) {
+	return ListReferencedEndpointGroups(ctx, storageservice.Client, storageservice.endpointGroups)
 }
 
 // Endpoints gets the storage service's endpoints.
-func (storageservice *StorageService) Endpoints() ([]*redfish.Endpoint, error) {
-	return redfish.ListReferencedEndpoints(storageservice.Client, storageservice.endpoints)
+func (storageservice *StorageService) Endpoints(ctx context.Context) ([]*redfish.Endpoint, error) {
+	return redfish.ListReferencedEndpoints(ctx, storageservice.Client, storageservice.endpoints)
 }
 
 // FileSystems gets all filesystems available through this storage service.
-func (storageservice *StorageService) FileSystems() ([]*FileSystem, error) {
-	return ListReferencedFileSystems(storageservice.Client, storageservice.fileSystems)
+func (storageservice *StorageService) FileSystems(ctx context.Context) ([]*FileSystem, error) {
+	return ListReferencedFileSystems(ctx, storageservice.Client, storageservice.fileSystems)
 }
 
 // IOConnectivityLoSCapabilities references the IO connectivity capabilities of this service.
-func (storageservice *StorageService) IOConnectivityLoSCapabilities() (*IOConnectivityLoSCapabilities, error) {
+func (storageservice *StorageService) IOConnectivityLoSCapabilities(ctx context.Context) (*IOConnectivityLoSCapabilities, error) {
 	if storageservice.ioConnectivityLoSCapabilities == "" {
 		return nil, nil
 	}
-	return GetIOConnectivityLoSCapabilities(storageservice.Client, storageservice.ioConnectivityLoSCapabilities)
+	return GetIOConnectivityLoSCapabilities(ctx, storageservice.Client, storageservice.ioConnectivityLoSCapabilities)
 }
 
 // IOPerformanceLoSCapabilities references the IO performance capabilities of this service.
-func (storageservice *StorageService) IOPerformanceLoSCapabilities() (*IOPerformanceLoSCapabilities, error) {
+func (storageservice *StorageService) IOPerformanceLoSCapabilities(ctx context.Context) (*IOPerformanceLoSCapabilities, error) {
 	if storageservice.ioConnectivityLoSCapabilities == "" {
 		return nil, nil
 	}
-	return GetIOPerformanceLoSCapabilities(storageservice.Client, storageservice.ioPerformanceLoSCapabilities)
+	return GetIOPerformanceLoSCapabilities(ctx, storageservice.Client, storageservice.ioPerformanceLoSCapabilities)
 }
 
 // Redundancy gets the redundancy information for the storage subsystem.
-func (storageservice *StorageService) Redundancy() ([]*redfish.Redundancy, error) {
+func (storageservice *StorageService) Redundancy(ctx context.Context) ([]*redfish.Redundancy, error) {
 	var result []*redfish.Redundancy
 	for _, redundancyLink := range storageservice.redundancy {
-		redundancy, err := redfish.GetRedundancy(storageservice.Client, redundancyLink)
+		redundancy, err := redfish.GetRedundancy(ctx, storageservice.Client, redundancyLink)
 		if err != nil {
 			return result, err
 		}
@@ -292,10 +293,10 @@ func (storageservice *StorageService) Redundancy() ([]*redfish.Redundancy, error
 
 // SpareResourceSets gets resources that may be utilized to replace the capacity
 // provided by a failed resource having a compatible type.
-func (storageservice *StorageService) SpareResourceSets() ([]*SpareResourceSet, error) {
+func (storageservice *StorageService) SpareResourceSets(ctx context.Context) ([]*SpareResourceSet, error) {
 	var result []*SpareResourceSet
 	for _, srsLink := range storageservice.spareResourceSets {
-		srs, err := GetSpareResourceSet(storageservice.Client, srsLink)
+		srs, err := GetSpareResourceSet(ctx, storageservice.Client, srsLink)
 		if err != nil {
 			return result, err
 		}
@@ -306,10 +307,10 @@ func (storageservice *StorageService) SpareResourceSets() ([]*SpareResourceSet, 
 }
 
 // StorageGroups gets the storage groups that are a part of this storage service.
-func (storageservice *StorageService) StorageGroups() ([]*StorageGroup, error) {
+func (storageservice *StorageService) StorageGroups(ctx context.Context) ([]*StorageGroup, error) {
 	var result []*StorageGroup
 	for _, sgLink := range storageservice.spareResourceSets {
-		sg, err := GetStorageGroup(storageservice.Client, sgLink)
+		sg, err := GetStorageGroup(ctx, storageservice.Client, sgLink)
 		if err != nil {
 			return result, err
 		}
@@ -320,17 +321,17 @@ func (storageservice *StorageService) StorageGroups() ([]*StorageGroup, error) {
 }
 
 // Volumes gets the volumes that are a part of this storage service.
-func (storageservice *StorageService) Volumes() ([]*Volume, error) {
-	return ListReferencedVolumes(storageservice.Client, storageservice.volumes)
+func (storageservice *StorageService) Volumes(ctx context.Context) ([]*Volume, error) {
+	return ListReferencedVolumes(ctx, storageservice.Client, storageservice.volumes)
 }
 
 // SetEncryptionKey shall set the encryption key for the storage subsystem.
-func (storageservice *StorageService) SetEncryptionKey(key string) error {
+func (storageservice *StorageService) SetEncryptionKey(ctx context.Context, key string) error {
 	type temp struct {
 		EncryptionKey string
 	}
 	t := temp{EncryptionKey: key}
 
-	_, err := storageservice.Client.Post(storageservice.setEncryptionKeyTarget, t)
+	_, err := storageservice.Client.Post(ctx, storageservice.setEncryptionKeyTarget, t)
 	return err
 }

@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -265,7 +266,7 @@ func TestComputerSystemUpdate(t *testing.T) {
 	result.AssetTag = "TestAssetTag"
 	result.HostName = "TestHostName"
 	result.IndicatorLED = common.BlinkingIndicatorLED
-	err = result.Update()
+	err = result.Update(context.Background())
 
 	if err != nil {
 		t.Errorf("Error making Update call: %s", err)

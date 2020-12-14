@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -117,7 +118,7 @@ func (manageraccount *ManagerAccount) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (manageraccount *ManagerAccount) Update() error {
+func (manageraccount *ManagerAccount) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -139,12 +140,12 @@ func (manageraccount *ManagerAccount) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(manageraccount).Elem()
 
-	return manageraccount.Entity.Update(originalElement, currentElement, readWriteFields)
+	return manageraccount.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetManagerAccount will get a ManagerAccount instance from the service.
-func GetManagerAccount(c common.Client, uri string) (*ManagerAccount, error) {
-	resp, err := c.Get(uri)
+func GetManagerAccount(ctx context.Context, c common.Client, uri string) (*ManagerAccount, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -162,19 +163,19 @@ func GetManagerAccount(c common.Client, uri string) (*ManagerAccount, error) {
 
 // ListReferencedManagerAccounts gets the collection of ManagerAccount from
 // a provided reference.
-func ListReferencedManagerAccounts(c common.Client, link string) ([]*ManagerAccount, error) {
+func ListReferencedManagerAccounts(ctx context.Context, c common.Client, link string) ([]*ManagerAccount, error) {
 	var result []*ManagerAccount
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, manageraccountLink := range links.ItemLinks {
-		manageraccount, err := GetManagerAccount(c, manageraccountLink)
+		manageraccount, err := GetManagerAccount(ctx, c, manageraccountLink)
 		if err != nil {
 			return result, err
 		}

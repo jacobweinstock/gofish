@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -85,7 +86,7 @@ func (role *Role) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (role *Role) Update() error {
+func (role *Role) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -100,12 +101,12 @@ func (role *Role) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(role).Elem()
 
-	return role.Entity.Update(originalElement, currentElement, readWriteFields)
+	return role.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetRole will get a Role instance from the service.
-func GetRole(c common.Client, uri string) (*Role, error) {
-	resp, err := c.Get(uri)
+func GetRole(ctx context.Context, c common.Client, uri string) (*Role, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -123,19 +124,19 @@ func GetRole(c common.Client, uri string) (*Role, error) {
 
 // ListReferencedRoles gets the collection of Role from
 // a provided reference.
-func ListReferencedRoles(c common.Client, link string) ([]*Role, error) {
+func ListReferencedRoles(ctx context.Context, c common.Client, link string) ([]*Role, error) {
 	var result []*Role
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, roleLink := range links.ItemLinks {
-		role, err := GetRole(c, roleLink)
+		role, err := GetRole(ctx, c, roleLink)
 		if err != nil {
 			return result, err
 		}

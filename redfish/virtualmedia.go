@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"reflect"
@@ -171,7 +172,7 @@ func (virtualmedia *VirtualMedia) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (virtualmedia *VirtualMedia) Update() error {
+func (virtualmedia *VirtualMedia) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -191,21 +192,21 @@ func (virtualmedia *VirtualMedia) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(virtualmedia).Elem()
 
-	return virtualmedia.Entity.Update(originalElement, currentElement, readWriteFields)
+	return virtualmedia.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // EjectMedia sends a request to eject the media.
-func (virtualmedia *VirtualMedia) EjectMedia() error {
+func (virtualmedia *VirtualMedia) EjectMedia(ctx context.Context) error {
 	if !virtualmedia.SupportsMediaEject {
 		return errors.New("redfish service does not support VirtualMedia.EjectMedia calls")
 	}
 
-	_, err := virtualmedia.Client.Post(virtualmedia.ejectMediaTarget, nil)
+	_, err := virtualmedia.Client.Post(ctx, virtualmedia.ejectMediaTarget, nil)
 	return err
 }
 
 // InsertMedia sends a request to insert virtual media.
-func (virtualmedia *VirtualMedia) InsertMedia(image string, inserted bool, writeProtected bool) error {
+func (virtualmedia *VirtualMedia) InsertMedia(ctx context.Context, image string, inserted bool, writeProtected bool) error {
 	if !virtualmedia.SupportsMediaInsert {
 		return errors.New("redfish service does not support VirtualMedia.InsertMedia calls")
 	}
@@ -221,13 +222,13 @@ func (virtualmedia *VirtualMedia) InsertMedia(image string, inserted bool, write
 		WriteProtected: writeProtected,
 	}
 
-	_, err := virtualmedia.Client.Post(virtualmedia.insertMediaTarget, t)
+	_, err := virtualmedia.Client.Post(ctx, virtualmedia.insertMediaTarget, t)
 	return err
 }
 
 // GetVirtualMedia will get a VirtualMedia instance from the service.
-func GetVirtualMedia(c common.Client, uri string) (*VirtualMedia, error) {
-	resp, err := c.Get(uri)
+func GetVirtualMedia(ctx context.Context, c common.Client, uri string) (*VirtualMedia, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -245,19 +246,19 @@ func GetVirtualMedia(c common.Client, uri string) (*VirtualMedia, error) {
 
 // ListReferencedVirtualMedias gets the collection of VirtualMedia from
 // a provided reference.
-func ListReferencedVirtualMedias(c common.Client, link string) ([]*VirtualMedia, error) {
+func ListReferencedVirtualMedias(ctx context.Context, c common.Client, link string) ([]*VirtualMedia, error) {
 	var result []*VirtualMedia
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, virtualmediaLink := range links.ItemLinks {
-		virtualmedia, err := GetVirtualMedia(c, virtualmediaLink)
+		virtualmedia, err := GetVirtualMedia(ctx, c, virtualmediaLink)
 		if err != nil {
 			return result, err
 		}

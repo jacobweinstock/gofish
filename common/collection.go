@@ -5,6 +5,7 @@
 package common
 
 import (
+	"context"
 	"encoding/json"
 )
 
@@ -42,8 +43,8 @@ func (c *Collection) UnmarshalJSON(b []byte) error {
 }
 
 // GetCollection retrieves a collection from the service.
-func GetCollection(c Client, uri string) (*Collection, error) {
-	resp, err := c.Get(uri)
+func GetCollection(ctx context.Context, c Client, uri string) (*Collection, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}

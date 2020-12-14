@@ -6,6 +6,7 @@ package redfish
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -99,6 +100,7 @@ func TestCreateSession(t *testing.T) {
 
 	// create the session
 	auth, err := CreateSession(
+		context.Background(),
 		testClient,
 		"/redfish/v1/SessionService/Sessions/",
 		"user",
@@ -178,6 +180,7 @@ func TestCreateSessionFullURIPath(t *testing.T) {
 
 	// create session
 	auth, err := CreateSession(
+		context.Background(),
 		testClient,
 		"/redfish/v1/SessionService/Sessions/",
 		"user",

@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -118,7 +119,7 @@ func TestHostInterfaceUpdate(t *testing.T) {
 	// result.FirmwareAuthRoleID = "role-1"
 	result.InterfaceEnabled = true
 	result.KernelAuthEnabled = true
-	err = result.Update()
+	err = result.Update(context.Background())
 
 	if err != nil {
 		t.Errorf("Error making Update call: %s", err)

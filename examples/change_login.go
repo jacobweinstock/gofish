@@ -4,10 +4,13 @@
 package main
 
 import (
+	"context"
+	"time"
+
 	"github.com/stmcginnis/gofish"
 )
 
-func main() {
+func changeLogin() {
 	// Create a new instance of gofish client, ignoring self-signed certs
 	username := "my-username"
 	config := gofish.ClientConfig{
@@ -16,22 +19,24 @@ func main() {
 		Password: "my-password",
 		Insecure: true,
 	}
-	c, err := gofish.Connect(config)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	c, err := gofish.Connect(ctx, config)
 	if err != nil {
 		panic(err)
 	}
-	defer c.Logout()
+	defer c.Logout(ctx)
 
 	// Retrieve the service root
 	service := c.Service
 
 	// Query the AccountService using the session token
-	accountService, err := service.AccountService()
+	accountService, err := service.AccountService(ctx)
 	if err != nil {
 		panic(err)
 	}
 	// Get list of accounts
-	accounts, err := accountService.Accounts()
+	accounts, err := accountService.Accounts(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -42,7 +47,7 @@ func main() {
 			// New password must follow the rules set in AccountService :
 			// MinPasswordLength and MaxPasswordLength
 			account.Password = "new-password"
-			err := account.Update()
+			err := account.Update(ctx)
 			if err != nil {
 				panic(err)
 			}

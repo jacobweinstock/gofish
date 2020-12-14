@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -327,7 +328,7 @@ func (networkdevicefunction *NetworkDeviceFunction) UnmarshalJSON(b []byte) erro
 }
 
 // Update commits updates to this object's properties to the running system.
-func (networkdevicefunction *NetworkDeviceFunction) Update() error {
+func (networkdevicefunction *NetworkDeviceFunction) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -343,12 +344,12 @@ func (networkdevicefunction *NetworkDeviceFunction) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(networkdevicefunction).Elem()
 
-	return networkdevicefunction.Entity.Update(originalElement, currentElement, readWriteFields)
+	return networkdevicefunction.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetNetworkDeviceFunction will get a NetworkDeviceFunction instance from the service.
-func GetNetworkDeviceFunction(c common.Client, uri string) (*NetworkDeviceFunction, error) {
-	resp, err := c.Get(uri)
+func GetNetworkDeviceFunction(ctx context.Context, c common.Client, uri string) (*NetworkDeviceFunction, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -366,19 +367,19 @@ func GetNetworkDeviceFunction(c common.Client, uri string) (*NetworkDeviceFuncti
 
 // ListReferencedNetworkDeviceFunctions gets the collection of NetworkDeviceFunction from
 // a provided reference.
-func ListReferencedNetworkDeviceFunctions(c common.Client, link string) ([]*NetworkDeviceFunction, error) {
+func ListReferencedNetworkDeviceFunctions(ctx context.Context, c common.Client, link string) ([]*NetworkDeviceFunction, error) {
 	var result []*NetworkDeviceFunction
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, networkdevicefunctionLink := range links.ItemLinks {
-		networkdevicefunction, err := GetNetworkDeviceFunction(c, networkdevicefunctionLink)
+		networkdevicefunction, err := GetNetworkDeviceFunction(ctx, c, networkdevicefunctionLink)
 		if err != nil {
 			return result, err
 		}

@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -183,7 +184,7 @@ func (storagegroup *StorageGroup) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (storagegroup *StorageGroup) Update() error {
+func (storagegroup *StorageGroup) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -201,12 +202,12 @@ func (storagegroup *StorageGroup) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(storagegroup).Elem()
 
-	return storagegroup.Entity.Update(originalElement, currentElement, readWriteFields)
+	return storagegroup.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetStorageGroup will get a StorageGroup instance from the service.
-func GetStorageGroup(c common.Client, uri string) (*StorageGroup, error) {
-	resp, err := c.Get(uri)
+func GetStorageGroup(ctx context.Context, c common.Client, uri string) (*StorageGroup, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -224,19 +225,19 @@ func GetStorageGroup(c common.Client, uri string) (*StorageGroup, error) {
 
 // ListReferencedStorageGroups gets the collection of StorageGroup from
 // a provided reference.
-func ListReferencedStorageGroups(c common.Client, link string) ([]*StorageGroup, error) {
+func ListReferencedStorageGroups(ctx context.Context, c common.Client, link string) ([]*StorageGroup, error) {
 	var result []*StorageGroup
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, storagegroupLink := range links.ItemLinks {
-		storagegroup, err := GetStorageGroup(c, storagegroupLink)
+		storagegroup, err := GetStorageGroup(ctx, c, storagegroupLink)
 		if err != nil {
 			return result, err
 		}
@@ -247,10 +248,10 @@ func ListReferencedStorageGroups(c common.Client, link string) ([]*StorageGroup,
 }
 
 // ChildStorageGroups gets child groups of this group.
-func (storagegroup *StorageGroup) ChildStorageGroups() ([]*StorageGroup, error) {
+func (storagegroup *StorageGroup) ChildStorageGroups(ctx context.Context) ([]*StorageGroup, error) {
 	var result []*StorageGroup
 	for _, sgLink := range storagegroup.childStorageGroups {
-		sg, err := GetStorageGroup(storagegroup.Client, sgLink)
+		sg, err := GetStorageGroup(ctx, storagegroup.Client, sgLink)
 		if err != nil {
 			return result, err
 		}
@@ -261,10 +262,10 @@ func (storagegroup *StorageGroup) ChildStorageGroups() ([]*StorageGroup, error) 
 }
 
 // ParentStorageGroups gets parent groups of this group.
-func (storagegroup *StorageGroup) ParentStorageGroups() ([]*StorageGroup, error) {
+func (storagegroup *StorageGroup) ParentStorageGroups(ctx context.Context) ([]*StorageGroup, error) {
 	var result []*StorageGroup
 	for _, sgLink := range storagegroup.parentStorageGroups {
-		sg, err := GetStorageGroup(storagegroup.Client, sgLink)
+		sg, err := GetStorageGroup(ctx, storagegroup.Client, sgLink)
 		if err != nil {
 			return result, err
 		}
@@ -276,11 +277,11 @@ func (storagegroup *StorageGroup) ParentStorageGroups() ([]*StorageGroup, error)
 
 // ClassOfService gets the ClassOfService that all storage in this StorageGroup
 // conforms to.
-func (storagegroup *StorageGroup) ClassOfService() (*ClassOfService, error) {
+func (storagegroup *StorageGroup) ClassOfService(ctx context.Context) (*ClassOfService, error) {
 	if storagegroup.classOfService == "" {
 		return nil, nil
 	}
-	return GetClassOfService(storagegroup.Client, storagegroup.classOfService)
+	return GetClassOfService(ctx, storagegroup.Client, storagegroup.classOfService)
 }
 
 //MappedVolume is an exposed volume mapping.
@@ -295,8 +296,8 @@ type MappedVolume struct {
 // named in the ServerEndpointGroups to the initiator endpoints named in the
 // ClientEndpointGroups.  The property VolumesAreExposed shall be set to true
 // when this action is completed.
-func (storagegroup *StorageGroup) ExposeVolumes() error {
-	_, err := storagegroup.Client.Post(storagegroup.exposeVolumesTarget, nil)
+func (storagegroup *StorageGroup) ExposeVolumes(ctx context.Context) error {
+	_, err := storagegroup.Client.Post(ctx, storagegroup.exposeVolumesTarget, nil)
 	if err == nil {
 		// Only set to exposed if no error. Calling expose when already exposed
 		// could fail so we don't want to indicate they are not exposed.
@@ -308,8 +309,8 @@ func (storagegroup *StorageGroup) ExposeVolumes() error {
 // HideVolumes hides the storage of this group from the initiator endpoints
 // named in the ClientEndpointGroups. The property VolumesAreExposed shall be
 // set to false when this action is completed.
-func (storagegroup *StorageGroup) HideVolumes() error {
-	_, err := storagegroup.Client.Post(storagegroup.hideVolumesTarget, nil)
+func (storagegroup *StorageGroup) HideVolumes(ctx context.Context) error {
+	_, err := storagegroup.Client.Post(ctx, storagegroup.hideVolumesTarget, nil)
 	if err == nil {
 		storagegroup.VolumesAreExposed = false
 	}

@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -36,8 +37,8 @@ type IOConnectivityLineOfService struct {
 }
 
 // GetIOConnectivityLineOfService will get a IOConnectivityLineOfService instance from the service.
-func GetIOConnectivityLineOfService(c common.Client, uri string) (*IOConnectivityLineOfService, error) {
-	resp, err := c.Get(uri)
+func GetIOConnectivityLineOfService(ctx context.Context, c common.Client, uri string) (*IOConnectivityLineOfService, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -55,19 +56,19 @@ func GetIOConnectivityLineOfService(c common.Client, uri string) (*IOConnectivit
 
 // ListReferencedIOConnectivityLineOfServices gets the collection of IOConnectivityLineOfService from
 // a provided reference.
-func ListReferencedIOConnectivityLineOfServices(c common.Client, link string) ([]*IOConnectivityLineOfService, error) {
+func ListReferencedIOConnectivityLineOfServices(ctx context.Context, c common.Client, link string) ([]*IOConnectivityLineOfService, error) {
 	var result []*IOConnectivityLineOfService
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, ioconnectivitylineofserviceLink := range links.ItemLinks {
-		ioconnectivitylineofservice, err := GetIOConnectivityLineOfService(c, ioconnectivitylineofserviceLink)
+		ioconnectivitylineofservice, err := GetIOConnectivityLineOfService(ctx, c, ioconnectivitylineofserviceLink)
 		if err != nil {
 			return result, err
 		}

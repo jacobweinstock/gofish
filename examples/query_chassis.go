@@ -4,12 +4,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/stmcginnis/gofish"
 )
 
-func main() {
+func qyeryChassis() {
 	// Create a new instance of gofish client, ignoring self-signed certs
 	config := gofish.ClientConfig{
 		Endpoint: "https://bmc-ip",
@@ -17,17 +19,19 @@ func main() {
 		Password: "my-password",
 		Insecure: true,
 	}
-	c, err := gofish.Connect(config)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	c, err := gofish.Connect(ctx, config)
 	if err != nil {
 		panic(err)
 	}
-	defer c.Logout()
+	defer c.Logout(ctx)
 
 	// Retrieve the service root
 	service := c.Service
 
 	// Query the chassis data using the session token
-	chassis, err := service.Chassis()
+	chassis, err := service.Chassis(ctx)
 	if err != nil {
 		panic(err)
 	}

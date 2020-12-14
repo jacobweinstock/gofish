@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -121,7 +122,7 @@ func TestSpareResourceSetUpdate(t *testing.T) {
 	result.ResourceType = "Hat"
 	result.TimeToProvision = "P0DT06H30M5S"
 	result.TimeToReplenish = "P5DT0H12M0S"
-	err = result.Update()
+	err = result.Update(context.Background())
 
 	if err != nil {
 		t.Errorf("Error making Update call: %s", err)

@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -365,7 +366,7 @@ func (memory *Memory) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (memory *Memory) Update() error {
+func (memory *Memory) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -379,12 +380,12 @@ func (memory *Memory) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(memory).Elem()
 
-	return memory.Entity.Update(originalElement, currentElement, readWriteFields)
+	return memory.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetMemory will get a Memory instance from the service.
-func GetMemory(c common.Client, uri string) (*Memory, error) {
-	resp, err := c.Get(uri)
+func GetMemory(ctx context.Context, c common.Client, uri string) (*Memory, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -402,19 +403,19 @@ func GetMemory(c common.Client, uri string) (*Memory, error) {
 
 // ListReferencedMemorys gets the collection of Memory from
 // a provided reference.
-func ListReferencedMemorys(c common.Client, link string) ([]*Memory, error) {
+func ListReferencedMemorys(ctx context.Context, c common.Client, link string) ([]*Memory, error) {
 	var result []*Memory
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, memoryLink := range links.ItemLinks {
-		memory, err := GetMemory(c, memoryLink)
+		memory, err := GetMemory(ctx, c, memoryLink)
 		if err != nil {
 			return result, err
 		}
@@ -425,27 +426,27 @@ func ListReferencedMemorys(c common.Client, link string) ([]*Memory, error) {
 }
 
 // Assembly gets this memory's assembly.
-func (memory *Memory) Assembly() (*Assembly, error) {
+func (memory *Memory) Assembly(ctx context.Context) (*Assembly, error) {
 	if memory.assembly == "" {
 		return nil, nil
 	}
-	return GetAssembly(memory.Client, memory.assembly)
+	return GetAssembly(ctx, memory.Client, memory.assembly)
 }
 
 // Metrics gets the memory metrics.
-func (memory *Memory) Metrics() (*MemoryMetrics, error) {
+func (memory *Memory) Metrics(ctx context.Context) (*MemoryMetrics, error) {
 	if memory.metrics == "" {
 		return nil, nil
 	}
-	return GetMemoryMetrics(memory.Client, memory.metrics)
+	return GetMemoryMetrics(ctx, memory.Client, memory.metrics)
 }
 
 // Chassis gets the containing chassis of this memory.
-func (memory *Memory) Chassis() (*Chassis, error) {
+func (memory *Memory) Chassis(ctx context.Context) (*Chassis, error) {
 	if memory.chassis == "" {
 		return nil, nil
 	}
-	return GetChassis(memory.Client, memory.chassis)
+	return GetChassis(ctx, memory.Client, memory.chassis)
 }
 
 // MemoryLocation shall contain properties which describe the Memory connection

@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -134,7 +135,7 @@ func TestStoragePoolUpdate(t *testing.T) {
 	result.Deduplicated = false
 	result.Encrypted = false
 	result.RecoverableCapacitySourceCount = 2
-	err = result.Update()
+	err = result.Update(context.Background())
 
 	if err != nil {
 		t.Errorf("Error making Update call: %s", err)

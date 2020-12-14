@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -237,8 +238,8 @@ func (networkadapter *NetworkAdapter) UnmarshalJSON(b []byte) error {
 }
 
 // GetNetworkAdapter will get a NetworkAdapter instance from the Redfish service.
-func GetNetworkAdapter(c common.Client, uri string) (*NetworkAdapter, error) {
-	resp, err := c.Get(uri)
+func GetNetworkAdapter(ctx context.Context, c common.Client, uri string) (*NetworkAdapter, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -255,15 +256,15 @@ func GetNetworkAdapter(c common.Client, uri string) (*NetworkAdapter, error) {
 }
 
 // ListReferencedNetworkAdapter gets the collection of Chassis from a provided reference.
-func ListReferencedNetworkAdapter(c common.Client, link string) ([]*NetworkAdapter, error) {
+func ListReferencedNetworkAdapter(ctx context.Context, c common.Client, link string) ([]*NetworkAdapter, error) {
 	var result []*NetworkAdapter
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, networkAdapterLink := range links.ItemLinks {
-		networkAdapter, err := GetNetworkAdapter(c, networkAdapterLink)
+		networkAdapter, err := GetNetworkAdapter(ctx, c, networkAdapterLink)
 		if err != nil {
 			return result, err
 		}
@@ -274,26 +275,26 @@ func ListReferencedNetworkAdapter(c common.Client, link string) ([]*NetworkAdapt
 }
 
 // Assembly gets this adapter's assembly.
-func (networkadapter *NetworkAdapter) Assembly() (*Assembly, error) {
+func (networkadapter *NetworkAdapter) Assembly(ctx context.Context) (*Assembly, error) {
 	if networkadapter.assembly == "" {
 		return nil, nil
 	}
-	return GetAssembly(networkadapter.Client, networkadapter.assembly)
+	return GetAssembly(ctx, networkadapter.Client, networkadapter.assembly)
 }
 
 // NetworkDeviceFunctions gets the collection of NetworkDeviceFunctions of this network adapter
-func (networkadapter *NetworkAdapter) NetworkDeviceFunctions() ([]*NetworkDeviceFunction, error) {
-	return ListReferencedNetworkDeviceFunctions(networkadapter.Client, networkadapter.networkDeviceFunctions)
+func (networkadapter *NetworkAdapter) NetworkDeviceFunctions(ctx context.Context) ([]*NetworkDeviceFunction, error) {
+	return ListReferencedNetworkDeviceFunctions(ctx, networkadapter.Client, networkadapter.networkDeviceFunctions)
 }
 
 // NetworkPorts gets the collection of NetworkPorts for this network adapter
-func (networkadapter *NetworkAdapter) NetworkPorts() ([]*NetworkPort, error) {
-	return ListReferencedNetworkPorts(networkadapter.Client, networkadapter.networkPorts)
+func (networkadapter *NetworkAdapter) NetworkPorts(ctx context.Context, ) ([]*NetworkPort, error) {
+	return ListReferencedNetworkPorts(ctx, networkadapter.Client, networkadapter.networkPorts)
 }
 
 // ResetSettingsToDefault shall perform a reset of all active and pending
 // settings back to factory default settings upon reset of the network adapter.
-func (networkadapter *NetworkAdapter) ResetSettingsToDefault() error {
-	_, err := networkadapter.Client.Post(networkadapter.resetSettingsToDefaultTarget, nil)
+func (networkadapter *NetworkAdapter) ResetSettingsToDefault(ctx context.Context) error {
+	_, err := networkadapter.Client.Post(ctx, networkadapter.resetSettingsToDefaultTarget, nil)
 	return err
 }

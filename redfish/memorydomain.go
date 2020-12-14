@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -60,8 +61,8 @@ func (memorydomain *MemoryDomain) UnmarshalJSON(b []byte) error {
 }
 
 // GetMemoryDomain will get a MemoryDomain instance from the service.
-func GetMemoryDomain(c common.Client, uri string) (*MemoryDomain, error) {
-	resp, err := c.Get(uri)
+func GetMemoryDomain(ctx context.Context, c common.Client, uri string) (*MemoryDomain, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -79,19 +80,19 @@ func GetMemoryDomain(c common.Client, uri string) (*MemoryDomain, error) {
 
 // ListReferencedMemoryDomains gets the collection of MemoryDomain from
 // a provided reference.
-func ListReferencedMemoryDomains(c common.Client, link string) ([]*MemoryDomain, error) {
+func ListReferencedMemoryDomains(ctx context.Context, c common.Client, link string) ([]*MemoryDomain, error) {
 	var result []*MemoryDomain
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, memorydomainLink := range links.ItemLinks {
-		memorydomain, err := GetMemoryDomain(c, memorydomainLink)
+		memorydomain, err := GetMemoryDomain(ctx, c, memorydomainLink)
 		if err != nil {
 			return result, err
 		}

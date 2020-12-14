@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -216,8 +217,8 @@ func (endpoint *Endpoint) UnmarshalJSON(b []byte) error {
 }
 
 // GetEndpoint will get a Endpoint instance from the service.
-func GetEndpoint(c common.Client, uri string) (*Endpoint, error) {
-	resp, err := c.Get(uri)
+func GetEndpoint(ctx context.Context, c common.Client, uri string) (*Endpoint, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -235,19 +236,19 @@ func GetEndpoint(c common.Client, uri string) (*Endpoint, error) {
 
 // ListReferencedEndpoints gets the collection of Endpoint from
 // a provided reference.
-func ListReferencedEndpoints(c common.Client, link string) ([]*Endpoint, error) {
+func ListReferencedEndpoints(ctx context.Context, c common.Client, link string) ([]*Endpoint, error) {
 	var result []*Endpoint
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, endpointLink := range links.ItemLinks {
-		endpoint, err := GetEndpoint(c, endpointLink)
+		endpoint, err := GetEndpoint(ctx, c, endpointLink)
 		if err != nil {
 			return result, err
 		}

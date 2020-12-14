@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -46,8 +47,8 @@ type DataSecurityLineOfService struct {
 }
 
 // GetDataSecurityLineOfService will get a DataSecurityLineOfService instance from the service.
-func GetDataSecurityLineOfService(c common.Client, uri string) (*DataSecurityLineOfService, error) {
-	resp, err := c.Get(uri)
+func GetDataSecurityLineOfService(ctx context.Context, c common.Client, uri string) (*DataSecurityLineOfService, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -65,19 +66,19 @@ func GetDataSecurityLineOfService(c common.Client, uri string) (*DataSecurityLin
 
 // ListReferencedDataSecurityLineOfServices gets the collection of DataSecurityLineOfService from
 // a provided reference.
-func ListReferencedDataSecurityLineOfServices(c common.Client, link string) ([]*DataSecurityLineOfService, error) {
+func ListReferencedDataSecurityLineOfServices(ctx context.Context, c common.Client, link string) ([]*DataSecurityLineOfService, error) {
 	var result []*DataSecurityLineOfService
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, datasecuritylineofserviceLink := range links.ItemLinks {
-		datasecuritylineofservice, err := GetDataSecurityLineOfService(c, datasecuritylineofserviceLink)
+		datasecuritylineofservice, err := GetDataSecurityLineOfService(ctx, c, datasecuritylineofserviceLink)
 		if err != nil {
 			return result, err
 		}

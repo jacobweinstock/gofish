@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -189,7 +190,7 @@ func TestUpdateBiosAttributes(t *testing.T) {
 	result.SetClient(testClient)
 
 	update := BiosAttributes{"AssetTag": "test"}
-	err = result.UpdateBiosAttributes(update)
+	err = result.UpdateBiosAttributes(context.Background(), update)
 
 	if err != nil {
 		t.Errorf("Error making UpdateBiosAttributes call: %s", err)

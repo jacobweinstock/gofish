@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -130,7 +131,7 @@ func TestNetworkPortUpdate(t *testing.T) {
 	result.CurrentLinkSpeedMbps = 10000
 	result.EEEEnabled = true
 	result.WakeOnLANEnabled = true
-	err = result.Update()
+	err = result.Update(context.Background())
 
 	if err != nil {
 		t.Errorf("Error making Update call: %s", err)

@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -103,8 +104,8 @@ func (storage *Storage) UnmarshalJSON(b []byte) error {
 }
 
 // GetStorage will get a Storage instance from the service.
-func GetStorage(c common.Client, uri string) (*Storage, error) {
-	resp, err := c.Get(uri)
+func GetStorage(ctx context.Context, c common.Client, uri string) (*Storage, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -122,19 +123,19 @@ func GetStorage(c common.Client, uri string) (*Storage, error) {
 
 // ListReferencedStorages gets the collection of Storage from a provided
 // reference.
-func ListReferencedStorages(c common.Client, link string) ([]*Storage, error) {
+func ListReferencedStorages(ctx context.Context, c common.Client, link string) ([]*Storage, error) {
 	var result []*Storage
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, storageLink := range links.ItemLinks {
-		storage, err := GetStorage(c, storageLink)
+		storage, err := GetStorage(ctx, c, storageLink)
 		if err != nil {
 			return result, err
 		}
@@ -145,10 +146,10 @@ func ListReferencedStorages(c common.Client, link string) ([]*Storage, error) {
 }
 
 // Enclosures gets the physical containers attached to this resource.
-func (storage *Storage) Enclosures() ([]*Chassis, error) {
+func (storage *Storage) Enclosures(ctx context.Context) ([]*Chassis, error) {
 	var result []*Chassis
 	for _, chassisLink := range storage.enclosures {
-		chassis, err := GetChassis(storage.Client, chassisLink)
+		chassis, err := GetChassis(ctx, storage.Client, chassisLink)
 		if err != nil {
 			return result, nil
 		}
@@ -159,10 +160,10 @@ func (storage *Storage) Enclosures() ([]*Chassis, error) {
 
 // Drives gets the drives attached to the storage controllers that this
 // resource represents.
-func (storage *Storage) Drives() ([]*Drive, error) {
+func (storage *Storage) Drives(ctx context.Context) ([]*Drive, error) {
 	var result []*Drive
 	for _, driveLink := range storage.drives {
-		drive, err := GetDrive(storage.Client, driveLink)
+		drive, err := GetDrive(ctx, storage.Client, driveLink)
 		if err != nil {
 			return result, nil
 		}
@@ -172,24 +173,24 @@ func (storage *Storage) Drives() ([]*Drive, error) {
 }
 
 // Volumes gets the volumes associated with this storage subsystem.
-func (storage *Storage) Volumes() ([]*Volume, error) {
-	return ListReferencedVolumes(storage.Client, storage.volumes)
+func (storage *Storage) Volumes(ctx context.Context) ([]*Volume, error) {
+	return ListReferencedVolumes(ctx, storage.Client, storage.volumes)
 }
 
 // SetEncryptionKey shall set the encryption key for the storage subsystem.
-func (storage *Storage) SetEncryptionKey(key string) error {
+func (storage *Storage) SetEncryptionKey(ctx context.Context, key string) error {
 	type temp struct {
 		EncryptionKey string
 	}
 	t := temp{EncryptionKey: key}
 
-	_, err := storage.Client.Post(storage.setEncryptionKeyTarget, t)
+	_, err := storage.Client.Post(ctx, storage.setEncryptionKeyTarget, t)
 	return err
 }
 
 // GetOperationApplyTimeValues returns the OperationApplyTime values applicable for this storage
-func (storage *Storage) GetOperationApplyTimeValues() ([]common.OperationApplyTime, error) {
-	return AllowedVolumesUpdateApplyTimes(storage.Client, storage.volumes)
+func (storage *Storage) GetOperationApplyTimeValues(ctx context.Context) ([]common.OperationApplyTime, error) {
+	return AllowedVolumesUpdateApplyTimes(ctx, storage.Client, storage.volumes)
 
 }
 
@@ -302,7 +303,7 @@ func (storagecontroller *StorageController) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (storagecontroller *StorageController) Update() error {
+func (storagecontroller *StorageController) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -316,12 +317,12 @@ func (storagecontroller *StorageController) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(storagecontroller).Elem()
 
-	return storagecontroller.Entity.Update(originalElement, currentElement, readWriteFields)
+	return storagecontroller.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetStorageController will get a Storage controller instance from the service.
-func GetStorageController(c common.Client, uri string) (*StorageController, error) {
-	resp, err := c.Get(uri)
+func GetStorageController(ctx context.Context, c common.Client, uri string) (*StorageController, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -339,19 +340,19 @@ func GetStorageController(c common.Client, uri string) (*StorageController, erro
 
 // ListReferencedStorageControllers gets the collection of StorageControllers
 // from a provided reference.
-func ListReferencedStorageControllers(c common.Client, link string) ([]*StorageController, error) {
+func ListReferencedStorageControllers(ctx context.Context, c common.Client, link string) ([]*StorageController, error) {
 	var result []*StorageController
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, storageLink := range links.ItemLinks {
-		storage, err := GetStorageController(c, storageLink)
+		storage, err := GetStorageController(ctx, c, storageLink)
 		if err != nil {
 			return result, err
 		}
@@ -362,18 +363,18 @@ func ListReferencedStorageControllers(c common.Client, link string) ([]*StorageC
 }
 
 // Assembly gets the storage controller's assembly.
-func (storagecontroller *StorageController) Assembly() (*Assembly, error) {
+func (storagecontroller *StorageController) Assembly(ctx context.Context) (*Assembly, error) {
 	if storagecontroller.assembly == "" {
 		return nil, nil
 	}
-	return GetAssembly(storagecontroller.Client, storagecontroller.assembly)
+	return GetAssembly(ctx, storagecontroller.Client, storagecontroller.assembly)
 }
 
 // Endpoints gets the storage controller's endpoints.
-func (storagecontroller *StorageController) Endpoints() ([]*Endpoint, error) {
+func (storagecontroller *StorageController) Endpoints(ctx context.Context) ([]*Endpoint, error) {
 	var result []*Endpoint
 	for _, endpointLink := range storagecontroller.endpoints {
-		endpoint, err := GetEndpoint(storagecontroller.Client, endpointLink)
+		endpoint, err := GetEndpoint(ctx, storagecontroller.Client, endpointLink)
 		if err != nil {
 			return result, err
 		}

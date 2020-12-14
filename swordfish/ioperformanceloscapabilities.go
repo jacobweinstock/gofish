@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -93,7 +94,7 @@ func (ioperformanceloscapabilities *IOPerformanceLoSCapabilities) UnmarshalJSON(
 }
 
 // Update commits updates to this object's properties to the running system.
-func (ioperformanceloscapabilities *IOPerformanceLoSCapabilities) Update() error {
+func (ioperformanceloscapabilities *IOPerformanceLoSCapabilities) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -111,12 +112,12 @@ func (ioperformanceloscapabilities *IOPerformanceLoSCapabilities) Update() error
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(ioperformanceloscapabilities).Elem()
 
-	return ioperformanceloscapabilities.Entity.Update(originalElement, currentElement, readWriteFields)
+	return ioperformanceloscapabilities.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetIOPerformanceLoSCapabilities will get a IOPerformanceLoSCapabilities instance from the service.
-func GetIOPerformanceLoSCapabilities(c common.Client, uri string) (*IOPerformanceLoSCapabilities, error) {
-	resp, err := c.Get(uri)
+func GetIOPerformanceLoSCapabilities(ctx context.Context, c common.Client, uri string) (*IOPerformanceLoSCapabilities, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -134,19 +135,19 @@ func GetIOPerformanceLoSCapabilities(c common.Client, uri string) (*IOPerformanc
 
 // ListReferencedIOPerformanceLoSCapabilitiess gets the collection of IOPerformanceLoSCapabilities from
 // a provided reference.
-func ListReferencedIOPerformanceLoSCapabilitiess(c common.Client, link string) ([]*IOPerformanceLoSCapabilities, error) {
+func ListReferencedIOPerformanceLoSCapabilitiess(ctx context.Context, c common.Client, link string) ([]*IOPerformanceLoSCapabilities, error) {
 	var result []*IOPerformanceLoSCapabilities
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, ioperformanceloscapabilitiesLink := range links.ItemLinks {
-		ioperformanceloscapabilities, err := GetIOPerformanceLoSCapabilities(c, ioperformanceloscapabilitiesLink)
+		ioperformanceloscapabilities, err := GetIOPerformanceLoSCapabilities(ctx, c, ioperformanceloscapabilitiesLink)
 		if err != nil {
 			return result, err
 		}

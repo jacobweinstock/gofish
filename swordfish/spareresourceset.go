@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -84,7 +85,7 @@ func (spareresourceset *SpareResourceSet) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (spareresourceset *SpareResourceSet) Update() error {
+func (spareresourceset *SpareResourceSet) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -101,12 +102,12 @@ func (spareresourceset *SpareResourceSet) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(spareresourceset).Elem()
 
-	return spareresourceset.Entity.Update(originalElement, currentElement, readWriteFields)
+	return spareresourceset.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetSpareResourceSet will get a SpareResourceSet instance from the service.
-func GetSpareResourceSet(c common.Client, uri string) (*SpareResourceSet, error) {
-	resp, err := c.Get(uri)
+func GetSpareResourceSet(ctx context.Context, c common.Client, uri string) (*SpareResourceSet, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -124,19 +125,19 @@ func GetSpareResourceSet(c common.Client, uri string) (*SpareResourceSet, error)
 
 // ListReferencedSpareResourceSets gets the collection of SpareResourceSet from
 // a provided reference.
-func ListReferencedSpareResourceSets(c common.Client, link string) ([]*SpareResourceSet, error) {
+func ListReferencedSpareResourceSets(ctx context.Context, c common.Client, link string) ([]*SpareResourceSet, error) {
 	var result []*SpareResourceSet
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, spareresourcesetLink := range links.ItemLinks {
-		spareresourceset, err := GetSpareResourceSet(c, spareresourcesetLink)
+		spareresourceset, err := GetSpareResourceSet(ctx, c, spareresourcesetLink)
 		if err != nil {
 			return result, err
 		}
@@ -148,6 +149,6 @@ func ListReferencedSpareResourceSets(c common.Client, link string) ([]*SpareReso
 
 // ReplacementSpareSets gets other spare sets that can be utilized to replenish
 // this spare set.
-func (spareresourceset *SpareResourceSet) ReplacementSpareSets() ([]*SpareResourceSet, error) {
-	return ListReferencedSpareResourceSets(spareresourceset.Client, spareresourceset.replacementSpareSets)
+func (spareresourceset *SpareResourceSet) ReplacementSpareSets(ctx context.Context) ([]*SpareResourceSet, error) {
+	return ListReferencedSpareResourceSets(ctx, spareresourceset.Client, spareresourceset.replacementSpareSets)
 }

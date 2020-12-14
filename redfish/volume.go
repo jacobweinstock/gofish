@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -219,8 +220,8 @@ func (volume *Volume) UnmarshalJSON(b []byte) error {
 }
 
 // GetVolume will get a Volume instance from the service.
-func GetVolume(c common.Client, uri string) (*Volume, error) {
-	resp, err := c.Get(uri)
+func GetVolume(ctx context.Context, c common.Client, uri string) (*Volume, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -237,19 +238,19 @@ func GetVolume(c common.Client, uri string) (*Volume, error) {
 }
 
 // ListReferencedVolumes gets the collection of Volumes from a provided reference.
-func ListReferencedVolumes(c common.Client, link string) ([]*Volume, error) {
+func ListReferencedVolumes(ctx context.Context, c common.Client, link string) ([]*Volume, error) {
 	var result []*Volume
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, volumeLink := range links.ItemLinks {
-		volume, err := GetVolume(c, volumeLink)
+		volume, err := GetVolume(ctx, c, volumeLink)
 		if err != nil {
 			return result, err
 		}
@@ -260,11 +261,11 @@ func ListReferencedVolumes(c common.Client, link string) ([]*Volume, error) {
 }
 
 // Drives references the Drives that this volume is associated with.
-func (volume *Volume) Drives() ([]*Drive, error) {
+func (volume *Volume) Drives(ctx context.Context) ([]*Drive, error) {
 	var result []*Drive
 
 	for _, driveLink := range volume.drives {
-		drive, err := GetDrive(volume.Client, driveLink)
+		drive, err := GetDrive(ctx, volume.Client, driveLink)
 		if err != nil {
 			return result, err
 		}
@@ -275,8 +276,8 @@ func (volume *Volume) Drives() ([]*Drive, error) {
 }
 
 // AllowedVolumesUpdateApplyTimes returns the set of allowed apply times to request when setting the volumes values
-func AllowedVolumesUpdateApplyTimes(c common.Client, link string) ([]common.OperationApplyTime, error) {
-	resp, err := c.Get(link)
+func AllowedVolumesUpdateApplyTimes(ctx context.Context, c common.Client, link string) ([]common.OperationApplyTime, error) {
+	resp, err := c.Get(ctx, link)
 	if err != nil {
 		return nil, err
 	}

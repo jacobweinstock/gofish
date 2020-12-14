@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -77,8 +78,8 @@ func (simplestorage *SimpleStorage) UnmarshalJSON(b []byte) error {
 }
 
 // GetSimpleStorage will get a SimpleStorage instance from the service.
-func GetSimpleStorage(c common.Client, uri string) (*SimpleStorage, error) {
-	resp, err := c.Get(uri)
+func GetSimpleStorage(ctx context.Context, c common.Client, uri string) (*SimpleStorage, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -96,19 +97,19 @@ func GetSimpleStorage(c common.Client, uri string) (*SimpleStorage, error) {
 
 // ListReferencedSimpleStorages gets the collection of SimpleStorage from
 // a provided reference.
-func ListReferencedSimpleStorages(c common.Client, link string) ([]*SimpleStorage, error) {
+func ListReferencedSimpleStorages(ctx context.Context, c common.Client, link string) ([]*SimpleStorage, error) {
 	var result []*SimpleStorage
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, simplestorageLink := range links.ItemLinks {
-		simplestorage, err := GetSimpleStorage(c, simplestorageLink)
+		simplestorage, err := GetSimpleStorage(ctx, c, simplestorageLink)
 		if err != nil {
 			return result, err
 		}
@@ -119,10 +120,10 @@ func ListReferencedSimpleStorages(c common.Client, link string) ([]*SimpleStorag
 }
 
 // Chassis gets the chassis containing this storage service.
-func (simplestorage *SimpleStorage) Chassis() (*Chassis, error) {
+func (simplestorage *SimpleStorage) Chassis(ctx context.Context) (*Chassis, error) {
 	if simplestorage.chassis == "" {
 		return nil, nil
 	}
 
-	return GetChassis(simplestorage.Client, simplestorage.chassis)
+	return GetChassis(ctx, simplestorage.Client, simplestorage.chassis)
 }

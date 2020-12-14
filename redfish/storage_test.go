@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -176,7 +177,7 @@ func TestStorageControllerUpdate(t *testing.T) {
 	// the full objects rather than just links to them.
 	testClient := &common.TestClient{}
 	scResult.SetClient(testClient)
-	err = scResult.Update()
+	err = scResult.Update(context.Background())
 
 	if err != nil {
 		t.Errorf("Error making Update call: %s", err)

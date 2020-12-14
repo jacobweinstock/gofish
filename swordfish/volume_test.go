@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -254,7 +255,7 @@ func TestVolumeUpdate(t *testing.T) {
 	result.StripSizeBytes = 1024
 	result.WriteCachePolicy = OffWriteCachePolicyType
 	result.WriteHoleProtectionPolicy = OEMWriteHoleProtectionPolicyType
-	err = result.Update()
+	err = result.Update(context.Background())
 
 	if err != nil {
 		t.Errorf("Error making Update call: %s", err)

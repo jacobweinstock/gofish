@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -105,7 +106,7 @@ func (endpointgroup *EndpointGroup) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (endpointgroup *EndpointGroup) Update() error {
+func (endpointgroup *EndpointGroup) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -123,12 +124,12 @@ func (endpointgroup *EndpointGroup) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(endpointgroup).Elem()
 
-	return endpointgroup.Entity.Update(originalElement, currentElement, readWriteFields)
+	return endpointgroup.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetEndpointGroup will get a EndpointGroup instance from the service.
-func GetEndpointGroup(c common.Client, uri string) (*EndpointGroup, error) {
-	resp, err := c.Get(uri)
+func GetEndpointGroup(ctx context.Context, c common.Client, uri string) (*EndpointGroup, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -146,19 +147,19 @@ func GetEndpointGroup(c common.Client, uri string) (*EndpointGroup, error) {
 
 // ListReferencedEndpointGroups gets the collection of EndpointGroup from
 // a provided reference.
-func ListReferencedEndpointGroups(c common.Client, link string) ([]*EndpointGroup, error) {
+func ListReferencedEndpointGroups(ctx context.Context, c common.Client, link string) ([]*EndpointGroup, error) {
 	var result []*EndpointGroup
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, endpointgroupLink := range links.ItemLinks {
-		endpointgroup, err := GetEndpointGroup(c, endpointgroupLink)
+		endpointgroup, err := GetEndpointGroup(ctx, c, endpointgroupLink)
 		if err != nil {
 			return result, err
 		}
@@ -169,6 +170,6 @@ func ListReferencedEndpointGroups(c common.Client, link string) ([]*EndpointGrou
 }
 
 // Endpoints gets the group's endpoints.
-func (endpointgroup *EndpointGroup) Endpoints() ([]*redfish.Endpoint, error) {
-	return redfish.ListReferencedEndpoints(endpointgroup.Client, endpointgroup.endpoints)
+func (endpointgroup *EndpointGroup) Endpoints(ctx context.Context) ([]*redfish.Endpoint, error) {
+	return redfish.ListReferencedEndpoints(ctx, endpointgroup.Client, endpointgroup.endpoints)
 }

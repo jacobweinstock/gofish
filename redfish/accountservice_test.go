@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -81,7 +82,7 @@ func TestAccountServiceUpdate(t *testing.T) {
 
 	orginalValue := result.AccountLockoutCounterResetEnabled
 	result.AccountLockoutCounterResetEnabled = !orginalValue
-	err = result.Update()
+	err = result.Update(context.Background())
 
 	if err != nil {
 		t.Errorf("Error making Update call: %s", err)

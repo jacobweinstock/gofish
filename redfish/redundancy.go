@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -93,7 +94,7 @@ func (redundancy *Redundancy) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (redundancy *Redundancy) Update() error {
+func (redundancy *Redundancy) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -108,12 +109,12 @@ func (redundancy *Redundancy) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(redundancy).Elem()
 
-	return redundancy.Entity.Update(originalElement, currentElement, readWriteFields)
+	return redundancy.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetRedundancy will get a Redundancy instance from the service.
-func GetRedundancy(c common.Client, uri string) (*Redundancy, error) {
-	resp, err := c.Get(uri)
+func GetRedundancy(ctx context.Context, c common.Client, uri string) (*Redundancy, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -131,19 +132,19 @@ func GetRedundancy(c common.Client, uri string) (*Redundancy, error) {
 
 // ListReferencedRedundancies gets the collection of Redundancy from
 // a provided reference.
-func ListReferencedRedundancies(c common.Client, link string) ([]*Redundancy, error) {
+func ListReferencedRedundancies(ctx context.Context, c common.Client, link string) ([]*Redundancy, error) {
 	var result []*Redundancy
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, redundancyLink := range links.ItemLinks {
-		redundancy, err := GetRedundancy(c, redundancyLink)
+		redundancy, err := GetRedundancy(ctx, c, redundancyLink)
 		if err != nil {
 			return result, err
 		}

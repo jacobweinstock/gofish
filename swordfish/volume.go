@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -513,7 +514,7 @@ func (volume *Volume) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (volume *Volume) Update() error {
+func (volume *Volume) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -541,12 +542,12 @@ func (volume *Volume) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(volume).Elem()
 
-	return volume.Entity.Update(originalElement, currentElement, readWriteFields)
+	return volume.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetVolume will get a Volume instance from the service.
-func GetVolume(c common.Client, uri string) (*Volume, error) {
-	resp, err := c.Get(uri)
+func GetVolume(ctx context.Context, c common.Client, uri string) (*Volume, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -563,19 +564,19 @@ func GetVolume(c common.Client, uri string) (*Volume, error) {
 }
 
 // ListReferencedVolumes gets the collection of Volume from a provided reference.
-func ListReferencedVolumes(c common.Client, link string) ([]*Volume, error) {
+func ListReferencedVolumes(ctx context.Context, c common.Client, link string) ([]*Volume, error) {
 	var result []*Volume
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, volumeLink := range links.ItemLinks {
-		volume, err := GetVolume(c, volumeLink)
+		volume, err := GetVolume(ctx, c, volumeLink)
 		if err != nil {
 			return result, err
 		}
@@ -586,20 +587,20 @@ func ListReferencedVolumes(c common.Client, link string) ([]*Volume, error) {
 }
 
 // ClassOfService gets the class of service that this storage volume conforms to.
-func (volume *Volume) ClassOfService() (*ClassOfService, error) {
+func (volume *Volume) ClassOfService(ctx context.Context) (*ClassOfService, error) {
 	if volume.classOfService == "" {
 		return nil, nil
 	}
 
-	return GetClassOfService(volume.Client, volume.classOfService)
+	return GetClassOfService(ctx, volume.Client, volume.classOfService)
 }
 
 // getDrives gets a set of referenced drives.
-func (volume *Volume) getDrives(links []string) ([]*redfish.Drive, error) {
+func (volume *Volume) getDrives(ctx context.Context, links []string) ([]*redfish.Drive, error) {
 	var result []*redfish.Drive
 
 	for _, driveLink := range links {
-		drive, err := redfish.GetDrive(volume.Client, driveLink)
+		drive, err := redfish.GetDrive(ctx, volume.Client, driveLink)
 		if err != nil {
 			return result, err
 		}
@@ -611,20 +612,20 @@ func (volume *Volume) getDrives(links []string) ([]*redfish.Drive, error) {
 
 // DedicatedSpareDrives references the Drives that are dedicated spares for this
 // volume.
-func (volume *Volume) DedicatedSpareDrives() ([]*redfish.Drive, error) {
-	return volume.getDrives(volume.dedicatedSpareDrives)
+func (volume *Volume) DedicatedSpareDrives(ctx context.Context) ([]*redfish.Drive, error) {
+	return volume.getDrives(ctx, volume.dedicatedSpareDrives)
 }
 
 // Drives references the Drives that are associated with this volume.
-func (volume *Volume) Drives() ([]*redfish.Drive, error) {
-	return volume.getDrives(volume.drives)
+func (volume *Volume) Drives(ctx context.Context) ([]*redfish.Drive, error) {
+	return volume.getDrives(ctx, volume.drives)
 }
 
 // SpareResourceSets gets the spare resources that can be used for this volume.
-func (volume *Volume) SpareResourceSets() ([]*SpareResourceSet, error) {
+func (volume *Volume) SpareResourceSets(ctx context.Context) ([]*SpareResourceSet, error) {
 	var result []*SpareResourceSet
 	for _, srsLink := range volume.spareResourceSets {
-		srs, err := GetSpareResourceSet(volume.Client, srsLink)
+		srs, err := GetSpareResourceSet(ctx, volume.Client, srsLink)
 		if err != nil {
 			return result, err
 		}
@@ -635,10 +636,10 @@ func (volume *Volume) SpareResourceSets() ([]*SpareResourceSet, error) {
 }
 
 // StorageGroups gets the storage groups that associated with this volume.
-func (volume *Volume) StorageGroups() ([]*StorageGroup, error) {
+func (volume *Volume) StorageGroups(ctx context.Context) ([]*StorageGroup, error) {
 	var result []*StorageGroup
 	for _, sgLink := range volume.storageGroups {
-		sg, err := GetStorageGroup(volume.Client, sgLink)
+		sg, err := GetStorageGroup(ctx, volume.Client, sgLink)
 		if err != nil {
 			return result, err
 		}
@@ -649,10 +650,10 @@ func (volume *Volume) StorageGroups() ([]*StorageGroup, error) {
 }
 
 // StoragePools gets the storage pools that associated with this volume.
-func (volume *Volume) StoragePools() ([]*StoragePool, error) {
+func (volume *Volume) StoragePools(ctx context.Context) ([]*StoragePool, error) {
 	var result []*StoragePool
 	for _, sgLink := range volume.allocatedPools {
-		sg, err := GetStoragePool(volume.Client, sgLink)
+		sg, err := GetStoragePool(ctx, volume.Client, sgLink)
 		if err != nil {
 			return result, err
 		}
@@ -666,7 +667,7 @@ func (volume *Volume) StoragePools() ([]*StoragePool, error) {
 // assigning an existing volume to serve as a target replica for an existing
 // source volume.
 func (volume *Volume) AssignReplicaTarget(
-	replicaType ReplicaType, updateMode ReplicaUpdateMode, targetVolumeODataID string) error {
+	ctx context.Context, replicaType ReplicaType, updateMode ReplicaUpdateMode, targetVolumeODataID string) error {
 
 	// This action wasn't added until later revisions
 	if volume.assignReplicaTargetTarget == "" {
@@ -687,24 +688,24 @@ func (volume *Volume) AssignReplicaTarget(
 		TargetVolume:      targetVolumeODataID,
 	}
 
-	_, err := volume.Client.Post(volume.assignReplicaTargetTarget, t)
+	_, err := volume.Client.Post(ctx, volume.assignReplicaTargetTarget, t)
 	return err
 }
 
 // CheckConsistency is used to force a check of the Volume's parity or redundant
 // data to ensure it matches calculated values.
-func (volume *Volume) CheckConsistency() error {
+func (volume *Volume) CheckConsistency(ctx context.Context) error {
 
 	if volume.checkConsistencyTarget == "" {
 		return fmt.Errorf("CheckConsistency action is not supported by this system")
 	}
 
-	_, err := volume.Client.Post(volume.checkConsistencyTarget, nil)
+	_, err := volume.Client.Post(ctx, volume.checkConsistencyTarget, nil)
 	return err
 }
 
 // Initialize is used to prepare the contents of the volume for use by the system.
-func (volume *Volume) Initialize(initType InitializeType) error {
+func (volume *Volume) Initialize(ctx context.Context, initType InitializeType) error {
 
 	if volume.initializeTarget == "" {
 		return fmt.Errorf("initialize action is not supported by this system")
@@ -718,14 +719,14 @@ func (volume *Volume) Initialize(initType InitializeType) error {
 	// Set the values for the action arguments
 	t := temp{InitializeType: initType}
 
-	_, err := volume.Client.Post(volume.initializeTarget, t)
+	_, err := volume.Client.Post(ctx, volume.initializeTarget, t)
 	return err
 }
 
 // RemoveReplicaRelationship is used to disable data synchronization between a
 // source and target volume, remove the replication relationship, and optionally
 // delete the target volume.
-func (volume *Volume) RemoveReplicaRelationship(deleteTarget bool, targetVolumeODataID string) error {
+func (volume *Volume) RemoveReplicaRelationship(ctx context.Context, deleteTarget bool, targetVolumeODataID string) error {
 
 	// This action wasn't added until later revisions
 	if volume.removeReplicaRelationshipTarget == "" {
@@ -744,14 +745,14 @@ func (volume *Volume) RemoveReplicaRelationship(deleteTarget bool, targetVolumeO
 		TargetVolume:       targetVolumeODataID,
 	}
 
-	_, err := volume.Client.Post(volume.removeReplicaRelationshipTarget, t)
+	_, err := volume.Client.Post(ctx, volume.removeReplicaRelationshipTarget, t)
 	return err
 }
 
 // ResumeReplication is used to resume the active data synchronization between a
 // source and target volume, without otherwise altering the replication
 // relationship.
-func (volume *Volume) ResumeReplication(targetVolumeODataID string) error {
+func (volume *Volume) ResumeReplication(ctx context.Context, targetVolumeODataID string) error {
 
 	// This action wasn't added until later revisions
 	if volume.resumeReplicationTarget == "" {
@@ -766,13 +767,13 @@ func (volume *Volume) ResumeReplication(targetVolumeODataID string) error {
 	// Set the values for the action arguments
 	t := temp{TargetVolume: targetVolumeODataID}
 
-	_, err := volume.Client.Post(volume.resumeReplicationTarget, t)
+	_, err := volume.Client.Post(ctx, volume.resumeReplicationTarget, t)
 	return err
 }
 
 // ReverseReplicationRelationship is used to reverse the replication
 // relationship between a source and target volume.
-func (volume *Volume) ReverseReplicationRelationship(targetVolumeODataID string) error {
+func (volume *Volume) ReverseReplicationRelationship(ctx context.Context, targetVolumeODataID string) error {
 
 	// This action wasn't added until later revisions
 	if volume.reverseReplicationRelationshipTarget == "" {
@@ -787,13 +788,13 @@ func (volume *Volume) ReverseReplicationRelationship(targetVolumeODataID string)
 	// Set the values for the action arguments
 	t := temp{TargetVolume: targetVolumeODataID}
 
-	_, err := volume.Client.Post(volume.reverseReplicationRelationshipTarget, t)
+	_, err := volume.Client.Post(ctx, volume.reverseReplicationRelationshipTarget, t)
 	return err
 }
 
 // SplitReplication is used to split the replication relationship and suspend
 // data synchronization between a source and target volume.
-func (volume *Volume) SplitReplication(targetVolumeODataID string) error {
+func (volume *Volume) SplitReplication(ctx context.Context, targetVolumeODataID string) error {
 
 	// This action wasn't added until later revisions
 	if volume.splitReplicationTarget == "" {
@@ -808,14 +809,14 @@ func (volume *Volume) SplitReplication(targetVolumeODataID string) error {
 	// Set the values for the action arguments
 	t := temp{TargetVolume: targetVolumeODataID}
 
-	_, err := volume.Client.Post(volume.splitReplicationTarget, t)
+	_, err := volume.Client.Post(ctx, volume.splitReplicationTarget, t)
 	return err
 }
 
 // SuspendReplication is used to suspend active data synchronization between a
 // source and target volume, without otherwise altering the replication
 // relationship.
-func (volume *Volume) SuspendReplication(targetVolumeODataID string) error {
+func (volume *Volume) SuspendReplication(ctx context.Context, targetVolumeODataID string) error {
 
 	// This action wasn't added until later revisions
 	if volume.suspendReplicationTarget == "" {
@@ -830,6 +831,6 @@ func (volume *Volume) SuspendReplication(targetVolumeODataID string) error {
 	// Set the values for the action arguments
 	t := temp{TargetVolume: targetVolumeODataID}
 
-	_, err := volume.Client.Post(volume.suspendReplicationTarget, t)
+	_, err := volume.Client.Post(ctx, volume.suspendReplicationTarget, t)
 	return err
 }

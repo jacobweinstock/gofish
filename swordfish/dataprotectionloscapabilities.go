@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -150,7 +151,7 @@ func (dataprotectionloscapabilities *DataProtectionLoSCapabilities) UnmarshalJSO
 }
 
 // Update commits updates to this object's properties to the running system.
-func (dataprotectionloscapabilities *DataProtectionLoSCapabilities) Update() error {
+func (dataprotectionloscapabilities *DataProtectionLoSCapabilities) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -170,12 +171,12 @@ func (dataprotectionloscapabilities *DataProtectionLoSCapabilities) Update() err
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(dataprotectionloscapabilities).Elem()
 
-	return dataprotectionloscapabilities.Entity.Update(originalElement, currentElement, readWriteFields)
+	return dataprotectionloscapabilities.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetDataProtectionLoSCapabilities will get a DataProtectionLoSCapabilities instance from the service.
-func GetDataProtectionLoSCapabilities(c common.Client, uri string) (*DataProtectionLoSCapabilities, error) {
-	resp, err := c.Get(uri)
+func GetDataProtectionLoSCapabilities(ctx context.Context, c common.Client, uri string) (*DataProtectionLoSCapabilities, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -193,19 +194,19 @@ func GetDataProtectionLoSCapabilities(c common.Client, uri string) (*DataProtect
 
 // ListReferencedDataProtectionLoSCapabilities gets the collection of DataProtectionLoSCapabilities from
 // a provided reference.
-func ListReferencedDataProtectionLoSCapabilities(c common.Client, link string) ([]*DataProtectionLoSCapabilities, error) {
+func ListReferencedDataProtectionLoSCapabilities(ctx context.Context, c common.Client, link string) ([]*DataProtectionLoSCapabilities, error) {
 	var result []*DataProtectionLoSCapabilities
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, dataprotectionloscapabilitiesLink := range links.ItemLinks {
-		dataprotectionloscapabilities, err := GetDataProtectionLoSCapabilities(c, dataprotectionloscapabilitiesLink)
+		dataprotectionloscapabilities, err := GetDataProtectionLoSCapabilities(ctx, c, dataprotectionloscapabilitiesLink)
 		if err != nil {
 			return result, err
 		}
@@ -216,11 +217,11 @@ func ListReferencedDataProtectionLoSCapabilities(c common.Client, link string) (
 }
 
 // SupportedReplicaOptions gets the support replica ClassesOfService.
-func (dataprotectionloscapabilities *DataProtectionLoSCapabilities) SupportedReplicaOptions() ([]*ClassOfService, error) {
+func (dataprotectionloscapabilities *DataProtectionLoSCapabilities) SupportedReplicaOptions(ctx context.Context) ([]*ClassOfService, error) {
 	var result []*ClassOfService
 
 	for _, link := range dataprotectionloscapabilities.supportedReplicaOptions {
-		classOfService, err := GetClassOfService(dataprotectionloscapabilities.Client, link)
+		classOfService, err := GetClassOfService(ctx, dataprotectionloscapabilities.Client, link)
 		if err != nil {
 			return result, err
 		}
@@ -231,11 +232,11 @@ func (dataprotectionloscapabilities *DataProtectionLoSCapabilities) SupportedRep
 }
 
 // SupportedLinesOfService gets the supported lines of service.
-func (dataprotectionloscapabilities *DataProtectionLoSCapabilities) SupportedLinesOfService() ([]*DataProtectionLineOfService, error) {
+func (dataprotectionloscapabilities *DataProtectionLoSCapabilities) SupportedLinesOfService(ctx context.Context) ([]*DataProtectionLineOfService, error) {
 	var result []*DataProtectionLineOfService
 
 	for _, link := range dataprotectionloscapabilities.supportedLinesOfService {
-		lineOfService, err := GetDataProtectionLineOfService(dataprotectionloscapabilities.Client, link)
+		lineOfService, err := GetDataProtectionLineOfService(ctx, dataprotectionloscapabilities.Client, link)
 		if err != nil {
 			return result, err
 		}

@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -65,7 +66,7 @@ func (ioconnectivityloscapabilities *IOConnectivityLoSCapabilities) UnmarshalJSO
 }
 
 // Update commits updates to this object's properties to the running system.
-func (ioconnectivityloscapabilities *IOConnectivityLoSCapabilities) Update() error {
+func (ioconnectivityloscapabilities *IOConnectivityLoSCapabilities) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -82,13 +83,13 @@ func (ioconnectivityloscapabilities *IOConnectivityLoSCapabilities) Update() err
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(ioconnectivityloscapabilities).Elem()
 
-	return ioconnectivityloscapabilities.Entity.Update(originalElement, currentElement, readWriteFields)
+	return ioconnectivityloscapabilities.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetIOConnectivityLoSCapabilities will get a IOConnectivityLoSCapabilities
 // instance from the service.
-func GetIOConnectivityLoSCapabilities(c common.Client, uri string) (*IOConnectivityLoSCapabilities, error) {
-	resp, err := c.Get(uri)
+func GetIOConnectivityLoSCapabilities(ctx context.Context, c common.Client, uri string) (*IOConnectivityLoSCapabilities, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -106,19 +107,19 @@ func GetIOConnectivityLoSCapabilities(c common.Client, uri string) (*IOConnectiv
 
 // ListReferencedIOConnectivityLoSCapabilitiess gets the collection of
 // IOConnectivityLoSCapabilities from a provided reference.
-func ListReferencedIOConnectivityLoSCapabilitiess(c common.Client, link string) ([]*IOConnectivityLoSCapabilities, error) {
+func ListReferencedIOConnectivityLoSCapabilitiess(ctx context.Context, c common.Client, link string) ([]*IOConnectivityLoSCapabilities, error) {
 	var result []*IOConnectivityLoSCapabilities
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, ioconnectivityloscapabilitiesLink := range links.ItemLinks {
-		ioconnectivityloscapabilities, err := GetIOConnectivityLoSCapabilities(c, ioconnectivityloscapabilitiesLink)
+		ioconnectivityloscapabilities, err := GetIOConnectivityLoSCapabilities(ctx, c, ioconnectivityloscapabilitiesLink)
 		if err != nil {
 			return result, err
 		}

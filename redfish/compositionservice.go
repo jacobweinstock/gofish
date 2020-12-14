@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -67,7 +68,7 @@ func (compositionservice *CompositionService) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (compositionservice *CompositionService) Update() error {
+func (compositionservice *CompositionService) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -82,12 +83,12 @@ func (compositionservice *CompositionService) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(compositionservice).Elem()
 
-	return compositionservice.Entity.Update(originalElement, currentElement, readWriteFields)
+	return compositionservice.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetCompositionService will get a CompositionService instance from the service.
-func GetCompositionService(c common.Client, uri string) (*CompositionService, error) {
-	resp, err := c.Get(uri)
+func GetCompositionService(ctx context.Context, c common.Client, uri string) (*CompositionService, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -105,19 +106,19 @@ func GetCompositionService(c common.Client, uri string) (*CompositionService, er
 
 // ListReferencedCompositionServices gets the collection of CompositionService from
 // a provided reference.
-func ListReferencedCompositionServices(c common.Client, link string) ([]*CompositionService, error) {
+func ListReferencedCompositionServices(ctx context.Context, c common.Client, link string) ([]*CompositionService, error) {
 	var result []*CompositionService
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, compositionserviceLink := range links.ItemLinks {
-		compositionservice, err := GetCompositionService(c, compositionserviceLink)
+		compositionservice, err := GetCompositionService(ctx, c, compositionserviceLink)
 		if err != nil {
 			return result, err
 		}

@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"net/url"
 
@@ -79,13 +80,13 @@ type authPayload struct {
 }
 
 // CreateSession creates a new session and returns the token and id
-func CreateSession(c common.Client, uri string, username string, password string) (auth *AuthToken, err error) {
+func CreateSession(ctx context.Context, c common.Client, uri string, username string, password string) (auth *AuthToken, err error) {
 	a := &authPayload{
 		UserName: username,
 		Password: password,
 	}
 
-	resp, err := c.Post(uri, a)
+	resp, err := c.Post(ctx, uri, a)
 	if err != nil {
 		return auth, err
 	}
@@ -103,8 +104,8 @@ func CreateSession(c common.Client, uri string, username string, password string
 }
 
 // DeleteSession deletes a session using the location as argument
-func DeleteSession(c common.Client, url string) (err error) {
-	resp, err := c.Delete(url)
+func DeleteSession(ctx context.Context, c common.Client, url string) (err error) {
+	resp, err := c.Delete(ctx, url)
 	if err != nil {
 		return err
 	}
@@ -113,8 +114,8 @@ func DeleteSession(c common.Client, url string) (err error) {
 }
 
 // GetSession will get a Session instance from the Redfish service.
-func GetSession(c common.Client, uri string) (*Session, error) {
-	resp, err := c.Get(uri)
+func GetSession(ctx context.Context, c common.Client, uri string) (*Session, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -130,15 +131,15 @@ func GetSession(c common.Client, uri string) (*Session, error) {
 }
 
 // ListReferencedSessions gets the collection of Sessions
-func ListReferencedSessions(c common.Client, link string) ([]*Session, error) {
+func ListReferencedSessions(ctx context.Context, c common.Client, link string) ([]*Session, error) {
 	var result []*Session
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, sLink := range links.ItemLinks {
-		s, err := GetSession(c, sLink)
+		s, err := GetSession(ctx, c, sLink)
 		if err != nil {
 			return result, err
 		}

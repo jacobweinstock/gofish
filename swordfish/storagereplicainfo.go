@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -444,8 +445,8 @@ type StorageReplicaInfo struct {
 }
 
 // GetStorageReplicaInfo will get a StorageReplicaInfo instance from the service.
-func GetStorageReplicaInfo(c common.Client, uri string) (*StorageReplicaInfo, error) {
-	resp, err := c.Get(uri)
+func GetStorageReplicaInfo(ctx context.Context, c common.Client, uri string) (*StorageReplicaInfo, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -463,19 +464,19 @@ func GetStorageReplicaInfo(c common.Client, uri string) (*StorageReplicaInfo, er
 
 // ListReferencedStorageReplicaInfos gets the collection of StorageReplicaInfo from
 // a provided reference.
-func ListReferencedStorageReplicaInfos(c common.Client, link string) ([]*StorageReplicaInfo, error) {
+func ListReferencedStorageReplicaInfos(ctx context.Context, c common.Client, link string) ([]*StorageReplicaInfo, error) {
 	var result []*StorageReplicaInfo
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, storagereplicainfoLink := range links.ItemLinks {
-		storagereplicainfo, err := GetStorageReplicaInfo(c, storagereplicainfoLink)
+		storagereplicainfo, err := GetStorageReplicaInfo(ctx, c, storagereplicainfoLink)
 		if err != nil {
 			return result, err
 		}

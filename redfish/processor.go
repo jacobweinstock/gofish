@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"strconv"
 
@@ -435,8 +436,8 @@ func (processor *Processor) UnmarshalJSON(b []byte) error {
 }
 
 // GetProcessor will get a Processor instance from the system
-func GetProcessor(c common.Client, uri string) (*Processor, error) {
-	resp, err := c.Get(uri)
+func GetProcessor(ctx context.Context, c common.Client, uri string) (*Processor, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -453,15 +454,15 @@ func GetProcessor(c common.Client, uri string) (*Processor, error) {
 }
 
 // ListReferencedProcessors gets the collection of Processor from a provided reference.
-func ListReferencedProcessors(c common.Client, link string) ([]*Processor, error) {
+func ListReferencedProcessors(ctx context.Context, c common.Client, link string) ([]*Processor, error) {
 	var result []*Processor
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, processorLink := range links.ItemLinks {
-		processor, err := GetProcessor(c, processorLink)
+		processor, err := GetProcessor(ctx, c, processorLink)
 		if err != nil {
 			return result, err
 		}

@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -224,7 +225,7 @@ func (networkport *NetworkPort) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (networkport *NetworkPort) Update() error {
+func (networkport *NetworkPort) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -242,12 +243,12 @@ func (networkport *NetworkPort) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(networkport).Elem()
 
-	return networkport.Entity.Update(originalElement, currentElement, readWriteFields)
+	return networkport.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetNetworkPort will get a NetworkPort instance from the service.
-func GetNetworkPort(c common.Client, uri string) (*NetworkPort, error) {
-	resp, err := c.Get(uri)
+func GetNetworkPort(ctx context.Context, c common.Client, uri string) (*NetworkPort, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -265,19 +266,19 @@ func GetNetworkPort(c common.Client, uri string) (*NetworkPort, error) {
 
 // ListReferencedNetworkPorts gets the collection of NetworkPort from
 // a provided reference.
-func ListReferencedNetworkPorts(c common.Client, link string) ([]*NetworkPort, error) {
+func ListReferencedNetworkPorts(ctx context.Context, c common.Client, link string) ([]*NetworkPort, error) {
 	var result []*NetworkPort
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, networkportLink := range links.ItemLinks {
-		networkport, err := GetNetworkPort(c, networkportLink)
+		networkport, err := GetNetworkPort(ctx, c, networkportLink)
 		if err != nil {
 			return result, err
 		}

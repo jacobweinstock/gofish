@@ -5,6 +5,7 @@
 package swordfish
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/stmcginnis/gofish/common"
@@ -60,8 +61,8 @@ type DataProtectionLineOfService struct {
 }
 
 // GetDataProtectionLineOfService will get a DataProtectionLineOfService instance from the service.
-func GetDataProtectionLineOfService(c common.Client, uri string) (*DataProtectionLineOfService, error) {
-	resp, err := c.Get(uri)
+func GetDataProtectionLineOfService(ctx context.Context, c common.Client, uri string) (*DataProtectionLineOfService, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -79,19 +80,19 @@ func GetDataProtectionLineOfService(c common.Client, uri string) (*DataProtectio
 
 // ListReferencedDataProtectionLineOfServices gets the collection of DataProtectionLineOfService from
 // a provided reference.
-func ListReferencedDataProtectionLineOfServices(c common.Client, link string) ([]*DataProtectionLineOfService, error) {
+func ListReferencedDataProtectionLineOfServices(ctx context.Context, c common.Client, link string) ([]*DataProtectionLineOfService, error) {
 	var result []*DataProtectionLineOfService
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, dataprotectionlineofserviceLink := range links.ItemLinks {
-		dataprotectionlineofservice, err := GetDataProtectionLineOfService(c, dataprotectionlineofserviceLink)
+		dataprotectionlineofservice, err := GetDataProtectionLineOfService(ctx, c, dataprotectionlineofserviceLink)
 		if err != nil {
 			return result, err
 		}

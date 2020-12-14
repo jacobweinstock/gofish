@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -156,7 +157,7 @@ func (hostinterface *HostInterface) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (hostinterface *HostInterface) Update() error {
+func (hostinterface *HostInterface) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -176,12 +177,12 @@ func (hostinterface *HostInterface) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(hostinterface).Elem()
 
-	return hostinterface.Entity.Update(originalElement, currentElement, readWriteFields)
+	return hostinterface.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetHostInterface will get a HostInterface instance from the service.
-func GetHostInterface(c common.Client, uri string) (*HostInterface, error) {
-	resp, err := c.Get(uri)
+func GetHostInterface(ctx context.Context, c common.Client, uri string) (*HostInterface, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -199,19 +200,19 @@ func GetHostInterface(c common.Client, uri string) (*HostInterface, error) {
 
 // ListReferencedHostInterfaces gets the collection of HostInterface from
 // a provided reference.
-func ListReferencedHostInterfaces(c common.Client, link string) ([]*HostInterface, error) {
+func ListReferencedHostInterfaces(ctx context.Context, c common.Client, link string) ([]*HostInterface, error) {
 	var result []*HostInterface
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, hostinterfaceLink := range links.ItemLinks {
-		hostinterface, err := GetHostInterface(c, hostinterfaceLink)
+		hostinterface, err := GetHostInterface(ctx, c, hostinterfaceLink)
 		if err != nil {
 			return result, err
 		}
@@ -222,11 +223,11 @@ func ListReferencedHostInterfaces(c common.Client, link string) ([]*HostInterfac
 }
 
 // ComputerSystems references the ComputerSystems that this host interface is associated with.
-func (hostinterface *HostInterface) ComputerSystems() ([]*ComputerSystem, error) {
+func (hostinterface *HostInterface) ComputerSystems(ctx context.Context, ) ([]*ComputerSystem, error) {
 	var result []*ComputerSystem
 
 	for _, computerSystemLink := range hostinterface.computerSystems {
-		computerSystem, err := GetComputerSystem(hostinterface.Client, computerSystemLink)
+		computerSystem, err := GetComputerSystem(ctx, hostinterface.Client, computerSystemLink)
 		if err != nil {
 			return result, err
 		}
@@ -238,14 +239,14 @@ func (hostinterface *HostInterface) ComputerSystems() ([]*ComputerSystem, error)
 
 // HostNetworkInterfaces gets the network interface controllers or cards (NICs)
 // that a Computer System uses to communicate with this Host Interface.
-func (hostinterface *HostInterface) HostNetworkInterfaces() ([]*EthernetInterface, error) {
-	return ListReferencedEthernetInterfaces(hostinterface.Client, hostinterface.managerEthernetInterface)
+func (hostinterface *HostInterface) HostNetworkInterfaces(ctx context.Context) ([]*EthernetInterface, error) {
+	return ListReferencedEthernetInterfaces(ctx, hostinterface.Client, hostinterface.managerEthernetInterface)
 }
 
 // ManagerNetworkInterfaces gets the network interface controllers or cards
 // (NIC) that this Manager uses for network communication with this Host Interface.
-func (hostinterface *HostInterface) ManagerNetworkInterfaces() ([]*EthernetInterface, error) {
-	return ListReferencedEthernetInterfaces(hostinterface.Client, hostinterface.managerEthernetInterface)
+func (hostinterface *HostInterface) ManagerNetworkInterfaces(ctx context.Context) ([]*EthernetInterface, error) {
+	return ListReferencedEthernetInterfaces(ctx, hostinterface.Client, hostinterface.managerEthernetInterface)
 }
 
 // TODO: Add access functions for linked objects

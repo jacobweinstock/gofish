@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -90,7 +91,7 @@ func TestCompositionServiceUpdate(t *testing.T) {
 
 	result.ServiceEnabled = false
 	result.AllowOverprovisioning = false
-	err = result.Update()
+	err = result.Update(context.Background())
 
 	if err != nil {
 		t.Errorf("Error making Update call: %s", err)

@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -278,7 +279,7 @@ func (chassis *Chassis) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (chassis *Chassis) Update() error {
+func (chassis *Chassis) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -293,12 +294,12 @@ func (chassis *Chassis) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(chassis).Elem()
 
-	return chassis.Entity.Update(originalElement, currentElement, readWriteFields)
+	return chassis.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // GetChassis will get a Chassis instance from the Redfish service.
-func GetChassis(c common.Client, uri string) (*Chassis, error) {
-	resp, err := c.Get(uri)
+func GetChassis(ctx context.Context, c common.Client, uri string) (*Chassis, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -315,15 +316,15 @@ func GetChassis(c common.Client, uri string) (*Chassis, error) {
 }
 
 // ListReferencedChassis gets the collection of Chassis from a provided reference.
-func ListReferencedChassis(c common.Client, link string) ([]*Chassis, error) {
+func ListReferencedChassis(ctx context.Context, c common.Client, link string) ([]*Chassis, error) {
 	var result []*Chassis
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, chassisLink := range links.ItemLinks {
-		chassis, err := GetChassis(c, chassisLink)
+		chassis, err := GetChassis(ctx, c, chassisLink)
 		if err != nil {
 			return result, err
 		}
@@ -334,12 +335,12 @@ func ListReferencedChassis(c common.Client, link string) ([]*Chassis, error) {
 }
 
 // Thermal gets the thermal temperature and cooling information for the chassis
-func (chassis *Chassis) Thermal() (*Thermal, error) {
+func (chassis *Chassis) Thermal(ctx context.Context) (*Thermal, error) {
 	if chassis.thermal == "" {
 		return nil, nil
 	}
 
-	resp, err := chassis.Client.Get(chassis.thermal)
+	resp, err := chassis.Client.Get(ctx, chassis.thermal)
 	if err != nil {
 		return nil, err
 	}
@@ -355,12 +356,12 @@ func (chassis *Chassis) Thermal() (*Thermal, error) {
 }
 
 // Power gets the power information for the chassis
-func (chassis *Chassis) Power() (*Power, error) {
+func (chassis *Chassis) Power(ctx context.Context) (*Power, error) {
 	if chassis.power == "" {
 		return nil, nil
 	}
 
-	resp, err := chassis.Client.Get(chassis.power)
+	resp, err := chassis.Client.Get(ctx, chassis.power)
 	if err != nil {
 		return nil, err
 	}
@@ -376,10 +377,10 @@ func (chassis *Chassis) Power() (*Power, error) {
 }
 
 // ComputerSystems returns the collection of systems from this chassis
-func (chassis *Chassis) ComputerSystems() ([]*ComputerSystem, error) {
+func (chassis *Chassis) ComputerSystems(ctx context.Context) ([]*ComputerSystem, error) {
 	var result []*ComputerSystem
 	for _, uri := range chassis.computerSystems {
-		cs, err := GetComputerSystem(chassis.Client, uri)
+		cs, err := GetComputerSystem(ctx, chassis.Client, uri)
 		if err != nil {
 			return nil, err
 		}
@@ -391,10 +392,10 @@ func (chassis *Chassis) ComputerSystems() ([]*ComputerSystem, error) {
 }
 
 // ManagedBy gets the collection of managers of this chassis
-func (chassis *Chassis) ManagedBy() ([]*Manager, error) {
+func (chassis *Chassis) ManagedBy(ctx context.Context) ([]*Manager, error) {
 	var result []*Manager
 	for _, uri := range chassis.managedBy {
-		manager, err := GetManager(chassis.Client, uri)
+		manager, err := GetManager(ctx, chassis.Client, uri)
 		if err != nil {
 			return nil, err
 		}
@@ -406,13 +407,13 @@ func (chassis *Chassis) ManagedBy() ([]*Manager, error) {
 }
 
 // NetworkAdapters gets the collection of network adapters of this chassis
-func (chassis *Chassis) NetworkAdapters() ([]*NetworkAdapter, error) {
-	return ListReferencedNetworkAdapter(chassis.Client, chassis.networkAdapters)
+func (chassis *Chassis) NetworkAdapters(ctx context.Context) ([]*NetworkAdapter, error) {
+	return ListReferencedNetworkAdapter(ctx, chassis.Client, chassis.networkAdapters)
 }
 
 // Reset shall reset the chassis. This action shall not reset Systems or other
 // contained resource, although side effects may occur which affect those resources.
-func (chassis *Chassis) Reset(resetType ResetType) error {
+func (chassis *Chassis) Reset(ctx context.Context, resetType ResetType) error {
 	// Make sure the requested reset type is supported by the chassis
 	valid := false
 	if len(chassis.SupportedResetTypes) > 0 {
@@ -439,6 +440,6 @@ func (chassis *Chassis) Reset(resetType ResetType) error {
 		ResetType: resetType,
 	}
 
-	_, err := chassis.Client.Post(chassis.resetTarget, t)
+	_, err := chassis.Client.Post(ctx, chassis.resetTarget, t)
 	return err
 }

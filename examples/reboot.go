@@ -1,13 +1,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/stmcginnis/gofish"
 	"github.com/stmcginnis/gofish/redfish"
 )
 
-func main() {
+func reboot() {
 	// Create a new instance of gofish client, ignoring self-signed certs
 	config := gofish.ClientConfig{
 		Endpoint: "https://bmc-ip",
@@ -15,18 +17,19 @@ func main() {
 		Password: "my-password",
 		Insecure: true,
 	}
-
-	c, err := gofish.Connect(config)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	c, err := gofish.Connect(ctx, config)
 	if err != nil {
 		panic(err)
 	}
-	defer c.Logout()
+	defer c.Logout(ctx)
 
 	// Attached the client to service root
 	service := c.Service
 
 	// Query the computer systems
-	ss, err := service.Systems()
+	ss, err := service.Systems(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -39,11 +42,11 @@ func main() {
 
 	for _, system := range ss {
 		fmt.Printf("System: %#v\n\n", system)
-		err := system.SetBoot(bootOverride)
+		err := system.SetBoot(ctx, bootOverride)
 		if err != nil {
 			panic(err)
 		}
-		err = system.Reset(redfish.ForceRestartResetType)
+		err = system.Reset(ctx, redfish.ForceRestartResetType)
 		if err != nil {
 			panic(err)
 		}

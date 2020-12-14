@@ -5,6 +5,7 @@
 package redfish
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 	"strconv"
@@ -146,8 +147,8 @@ type Power struct {
 }
 
 // GetPower will get a Power instance from the service.
-func GetPower(c common.Client, uri string) (*Power, error) {
-	resp, err := c.Get(uri)
+func GetPower(ctx context.Context, c common.Client, uri string) (*Power, error) {
+	resp, err := c.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -165,19 +166,19 @@ func GetPower(c common.Client, uri string) (*Power, error) {
 
 // ListReferencedPowers gets the collection of Power from
 // a provided reference.
-func ListReferencedPowers(c common.Client, link string) ([]*Power, error) {
+func ListReferencedPowers(ctx context.Context, c common.Client, link string) ([]*Power, error) {
 	var result []*Power
 	if link == "" {
 		return result, nil
 	}
 
-	links, err := common.GetCollection(c, link)
+	links, err := common.GetCollection(ctx, c, link)
 	if err != nil {
 		return result, err
 	}
 
 	for _, powerLink := range links.ItemLinks {
-		power, err := GetPower(c, powerLink)
+		power, err := GetPower(ctx, c, powerLink)
 		if err != nil {
 			return result, err
 		}
@@ -412,7 +413,7 @@ func (powersupply *PowerSupply) UnmarshalJSON(b []byte) error {
 }
 
 // Update commits updates to this object's properties to the running system.
-func (powersupply *PowerSupply) Update() error {
+func (powersupply *PowerSupply) Update(ctx context.Context) error {
 
 	// Get a representation of the object's original state so we can find what
 	// to update.
@@ -426,7 +427,7 @@ func (powersupply *PowerSupply) Update() error {
 	originalElement := reflect.ValueOf(original).Elem()
 	currentElement := reflect.ValueOf(powersupply).Elem()
 
-	return powersupply.Entity.Update(originalElement, currentElement, readWriteFields)
+	return powersupply.Entity.Update(ctx, originalElement, currentElement, readWriteFields)
 }
 
 // Voltage is a voltage representation.
